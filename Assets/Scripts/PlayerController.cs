@@ -5,6 +5,7 @@ using UnityEngine;
 public class PlayerMovement : MonoBehaviour
 {
     public Camera playerCamera;
+    public Camera interviewCamera;
     public float walkSpeed = 6f;
     public float runSpeed = 12f;
     public float jumpPower = 7f;
@@ -26,6 +27,7 @@ public class PlayerMovement : MonoBehaviour
         characterController = GetComponent<CharacterController>();
         Cursor.lockState = CursorLockMode.Locked;
         Cursor.visible = false;
+        interviewCamera.enabled = false;
     }
 
     void Update()
@@ -52,8 +54,40 @@ public class PlayerMovement : MonoBehaviour
         {
             moveDirection.y -= gravity * Time.deltaTime;
         }
+        
+        if(Input.GetKey(KeyCode.Mouse0))
+        {
+            Ray ray = playerCamera.ScreenPointToRay(Input.mousePosition);
+            RaycastHit hit;
+            float maxDistance = 20f;
+            if (Physics.Raycast(ray, out hit, maxDistance))
+            {
+                if (hit.collider.CompareTag("Interview"))
+                {
+                    canMove = false;
+                    Cursor.lockState = CursorLockMode.None;
+                    Cursor.visible = true;
+                    playerCamera.enabled = false;
+                    interviewCamera.enabled = true;
+                }
+            }
+            ray = interviewCamera.ScreenPointToRay(Input.mousePosition);
+            if (Physics.Raycast(ray, out hit, maxDistance))
+            {
+                
+                if (hit.collider.CompareTag("Office"))
+                {
+                    canMove = true;
+                    Cursor.lockState = CursorLockMode.Locked;
+                    Cursor.visible = false;
+                    playerCamera.enabled = true;
+                    interviewCamera.enabled = false;
+                }
+            }
+            
+        }
 
-        if (Input.GetKey(KeyCode.R) && canMove)
+        if (Input.GetKey(KeyCode.LeftControl) && canMove)
         {
             characterController.height = crouchHeight;
             walkSpeed = crouchSpeed;
