@@ -4,6 +4,7 @@ using UnityEngine;
 [RequireComponent(typeof(CharacterController))]
 public class PlayerMovement : MonoBehaviour
 {
+    public DialogueManager dialogueManager;
     public Camera playerCamera;
     public Camera interviewCamera;
     public float walkSpeed = 6f;
@@ -91,6 +92,10 @@ Debug.Log("Did Hit, office");
                     playerCamera.enabled = true;
                     interviewCamera.enabled = false;
                     onOfficeCam = true;
+                }
+                else if (hit.collider.CompareTag("Positive"))
+                {
+                    dialogueManager.nextLine(1.0f);
                 }
             }
             /*ray = interviewCamera.ScreenPointToRay(Input.mousePosition);
