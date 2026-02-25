@@ -21,6 +21,7 @@ public class PlayerMovement : MonoBehaviour
     private CharacterController characterController;
 
     private bool canMove = true;
+    private bool onOfficeCam = true;
 
     void Start()
     {
@@ -55,36 +56,51 @@ public class PlayerMovement : MonoBehaviour
             moveDirection.y -= gravity * Time.deltaTime;
         }
         
-        if(Input.GetKey(KeyCode.Mouse0))
+        if(Input.GetMouseButtonDown(0))
         {
-            Ray ray = playerCamera.ScreenPointToRay(Input.mousePosition);
+            Ray ray;
+            if(onOfficeCam)
+            {
+                ray = playerCamera.ScreenPointToRay(Input.mousePosition);
+            }
+            else
+            {
+                ray = interviewCamera.ScreenPointToRay(Input.mousePosition);
+            }
+            
             RaycastHit hit;
-            float maxDistance = 20f;
+            float maxDistance = 100f;
             if (Physics.Raycast(ray, out hit, maxDistance))
             {
                 if (hit.collider.CompareTag("Interview"))
                 {
+Debug.Log("Did Hit, interview");
                     canMove = false;
                     Cursor.lockState = CursorLockMode.None;
                     Cursor.visible = true;
                     playerCamera.enabled = false;
                     interviewCamera.enabled = true;
+                    onOfficeCam = false;
                 }
-            }
-            ray = interviewCamera.ScreenPointToRay(Input.mousePosition);
-            if (Physics.Raycast(ray, out hit, maxDistance))
-            {
-                
-                if (hit.collider.CompareTag("Office"))
+                else if (hit.collider.CompareTag("Office"))
                 {
+Debug.Log("Did Hit, office");
                     canMove = true;
                     Cursor.lockState = CursorLockMode.Locked;
                     Cursor.visible = false;
                     playerCamera.enabled = true;
                     interviewCamera.enabled = false;
+                    onOfficeCam = true;
                 }
             }
+            /*ray = interviewCamera.ScreenPointToRay(Input.mousePosition);
             
+            if (Physics.Raycast(ray, out hit, maxDistance))
+            {
+                
+                
+            }
+            */
         }
 
         if (Input.GetKey(KeyCode.LeftControl) && canMove)
