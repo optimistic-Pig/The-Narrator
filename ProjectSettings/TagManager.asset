@@ -8,6 +8,8 @@ TagManager:
   - Office
   - 'Office '
   - Positive
+  - Neutral
+  - Negative
   layers:
   - Default
   - TransparentFX
