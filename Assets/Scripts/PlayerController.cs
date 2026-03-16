@@ -104,17 +104,26 @@ Debug.Log("Did Hit, office");
                     onOfficeCam = true;
                 }
                 //these options will let the dialouge manager know there is a new option and that script will dictate what dialogue to choose from
-                else if (hit.collider.CompareTag("Positive"))
+                else if (hit.collider.CompareTag("Option1"))
                 {
-                    dialogueManager.nextLine(1.0f);
+                    dialogueManager.OptionClicked(1.0f);
+Debug.Log("option 1");
                 }
-                else if (hit.collider.CompareTag("Neutral"))
+
+                else if (hit.collider.CompareTag("Option2"))
                 {
-                    dialogueManager.nextLine(1.0f);
+                    dialogueManager.OptionClicked(2.0f);
+Debug.Log("option 2");
                 }
-                else if (hit.collider.CompareTag("Negative"))
+                else if (hit.collider.CompareTag("Option3"))
                 {
-                    dialogueManager.nextLine(1.0f);
+                    dialogueManager.OptionClicked(3.0f);
+Debug.Log("option 3");
+                }
+                else if (hit.collider.CompareTag("Option4"))
+                {
+                    dialogueManager.OptionClicked(4.0f);
+Debug.Log("option 4");
                 }
 
             }
