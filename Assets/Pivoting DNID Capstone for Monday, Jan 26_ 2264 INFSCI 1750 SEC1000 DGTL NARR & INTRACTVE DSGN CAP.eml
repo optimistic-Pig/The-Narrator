@@ -1,0 +1,233 @@
+Received: from IA0PR04MB8785.namprd04.prod.outlook.com (2603:10b6:208:491::21)
+ by SA0PR04MB7387.namprd04.prod.outlook.com with HTTPS; Mon, 26 Jan 2026
+ 00:53:03 +0000
+Received: from SN7P220CA0009.NAMP220.PROD.OUTLOOK.COM (2603:10b6:806:123::14)
+ by IA0PR04MB8785.namprd04.prod.outlook.com (2603:10b6:208:491::21) with
+ Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.9564.6; Mon, 26 Jan
+ 2026 00:53:01 +0000
+Received: from SN1PEPF00036F3D.namprd05.prod.outlook.com
+ (2603:10b6:806:123:cafe::48) by SN7P220CA0009.outlook.office365.com
+ (2603:10b6:806:123::14) with Microsoft SMTP Server (version=TLS1_3,
+ cipher=TLS_AES_256_GCM_SHA384) id 15.20.9542.15 via Frontend Transport; Mon,
+ 26 Jan 2026 00:53:09 +0000
+Received: from d221-124.smtp-out.amazonses.com (23.249.221.124) by
+ SN1PEPF00036F3D.mail.protection.outlook.com (10.167.248.21) with Microsoft
+ SMTP Server (version=TLS1_3, cipher=TLS_AES_256_GCM_SHA384) id 15.20.9564.3
+ via Frontend Transport; Mon, 26 Jan 2026 00:53:05 +0000
+From: 2264 INFSCI 1750 SEC1000 DGTL NARR & INTRACTVE DSGN CAP
+	<notifications@instructure.com>
+To: "Gray, Liv" <OHG3@pitt.edu>
+Subject: Pivoting DNID Capstone for Monday, Jan 26: 2264 INFSCI 1750 SEC1000
+ DGTL NARR & INTRACTVE DSGN CAP
+Thread-Topic: Pivoting DNID Capstone for Monday, Jan 26: 2264 INFSCI 1750
+ SEC1000 DGTL NARR & INTRACTVE DSGN CAP
+Thread-Index: AQHcjl4g5l8VoTmCXkyNnpzl+Es+Aw==
+Date: Mon, 26 Jan 2026 00:53:04 +0000
+Message-ID:
+	<0100019bf7ca3d04-e0fd1ece-694d-461c-8a2c-f4104c2b0f11-000000@email.amazonses.com>
+Reply-To:
+	"reply+8323340e748a46f5-13997~306666825-1769388781@notifications.canvaslms.com"
+	<reply+8323340e748a46f5-13997~306666825-1769388781@notifications.canvaslms.com>
+Content-Language: en-GB
+X-MS-Exchange-Organization-AuthAs: Anonymous
+X-MS-Exchange-Organization-AuthSource:
+	SN1PEPF00036F3D.namprd05.prod.outlook.com
+X-MS-Has-Attach:
+X-MS-Exchange-Organization-Network-Message-Id:
+	8bf482fe-1b3c-4554-896f-08de5c75440a
+X-MS-Exchange-Organization-SCL: -1
+X-Message-Flag: Flag for follow up
+X-MS-TNEF-Correlator:
+X-MS-Exchange-Organization-RecordReviewCfmType: 0
+x-ms-publictraffictype: Email
+received-spf: Pass (protection.outlook.com: domain of
+ mail-us-east-1.instructure.com designates 23.249.221.124 as permitted sender)
+ receiver=protection.outlook.com; client-ip=23.249.221.124;
+ helo=d221-124.smtp-out.amazonses.com; pr=C
+X-Microsoft-Antispam-Mailbox-Delivery:
+	wl:1;pcwl:1;ucf:0;jmr:0;auth:0;dest:I;ENG:(910005)(944490095)(944506478)(944626604)(920097)(811242)(255002)(410001)(930201)(20251009114)(140003)(1420198);
+X-Microsoft-Antispam-Message-Info:
+	=?us-ascii?Q?MHElttv554tE7l3E5M3nEjC98qjRFQLsoRgBtCNkr5c/ecvy9autLl+voHgX?=
+ =?us-ascii?Q?sN4tqAeFcuaYPOs2Z+wUGIMAZhQE/z4DIw7o7Eh0qYmZKQW745Jbl1k++bJ+?=
+ =?us-ascii?Q?op5/EByojj2ElkLSudCS3dK/7oWfuWW+yk0j74QPynz5wl45j42j/RtqM5pR?=
+ =?us-ascii?Q?t7JGFkINc4+k5uABxV2i1SOcTWuFhHpY246110iOTJqSJK/+HytdKOc6aUow?=
+ =?us-ascii?Q?weaaUnlJ5MdDbknQzl2sI8AOwKQMtkjC04RtLjP8vvrmQka9MJOjVi89lxuw?=
+ =?us-ascii?Q?tlRWKx80ambGC4EduY3qDySmyuqsX0uSeYXWoJhk0hTAH1lxjzwmAweVz+On?=
+ =?us-ascii?Q?nRwVuyNv1Z1H/jYf3OUWZ92Kna86uy0Xwlmjxv5rHbGm97Oz+BNtmykhb1/c?=
+ =?us-ascii?Q?MVcnVkpgHm3Z8W87Yry07KVemyrGzx9efjArIOinXnwoV8WteKePh0Ftkzvt?=
+ =?us-ascii?Q?vZURYEzcoFICRE7P9mavKHx87ZRFfSF08sjgQRThnxRr8ob9y6Dws4yZKRQ/?=
+ =?us-ascii?Q?6/OXt2fROwqyPeZbFn6V/UnsZQ1ifXOHFFmgPk6u7P7nECdVPgDFMVYMErPG?=
+ =?us-ascii?Q?epUdef7py4wJW/b6xyBPyfM6ozfgeOQi1sEaLfg5bo8dB8yJcmA3N1xr5R0o?=
+ =?us-ascii?Q?SIaBdF20JJQ3dFd0ohja/+8SzbUp2+VU0LnschOzNMhrpTaI1YgjN0pYjVtr?=
+ =?us-ascii?Q?seV0J16kNdfs/LHl9warh/Lm3KX2jxoXDps+yRDXZjbdUUg/ZdUo2jhEQ1+N?=
+ =?us-ascii?Q?MHfrjqNYsJn0BLsuxFuQ1RVGy7QiaZFo5VyI5jkMylyIQL+pwvvKNh8W1Eoq?=
+ =?us-ascii?Q?dy40zyP5ON7bPQE0PkQWi5HJOIJvF/QI79X57OzbYsWCWmHCB+E1auc76i1r?=
+ =?us-ascii?Q?J87RwoqqTlRzx2yAqG0ztQKPi1//5Ay4qGrSMU1g0Ylc63UjgXpnoOuRLGIH?=
+ =?us-ascii?Q?2h7v+/vNCbgGkC8jy2RThTeTdclsWn4mjEMq/qkHuB9xDYQ7hO5rZEfg5V53?=
+ =?us-ascii?Q?FqropGJzmsklZjq8iT6v/qWxXcTN60fGceko0vqUC79QGjYiIdxnF03zT6q+?=
+ =?us-ascii?Q?bTiiAZiE3Jy7ZLeOE40hkF1a5/gwbKf9VE6kvyaYkNNHy1cMPFV7qFuLRL5e?=
+ =?us-ascii?Q?Dk825d5SVBGWDmIpV5+VPtcsNFnVdPW/uEIvyeb7V8cG/TzetMWvV6DZjXzf?=
+ =?us-ascii?Q?T+JAbprtiTBr+mLN011cn1dpi2M0wRicHxUoz3SV+j33kYHWaShRQFt+0lqG?=
+ =?us-ascii?Q?CCVzm8yeDxDkm8C/sDNF3PhPcKibgLiZNVIA0UQcPOqFsGiJY3Q3OUEj+3es?=
+ =?us-ascii?Q?m/BekIlG4dMe+iCVo+Zwy/qNj20UIFyWPwvdSbEe+cqgbippjxpEgHs7Pwrs?=
+ =?us-ascii?Q?k9Cw+g+DTpbPmOzGaeCY+Qqm0F4Xq7xAx4ckb3oo6SNBFKP5+6BIpc6/5GB4?=
+ =?us-ascii?Q?blNA0C9daLD+FpjmVADkOYXDjJ4+Sf9IN+Lvw1lf0idEDU8tlWj1ywx/49eH?=
+ =?us-ascii?Q?EJHETK+LgxS6pjx8kgz8mHsemnD0kJb3qBnLC0JuyIoRg2pX4PuMx5i0KZgG?=
+ =?us-ascii?Q?MgPa7AgvawquvBvGSA10D4UreDgZtEOTAaivmvb/A4Ze5iyekc7oG70c03nZ?=
+ =?us-ascii?Q?vkAS4vKqAeYxMls8phd/+OQw4xu18OihugbECli8ZQ0t3v9gSQENPo2bmtTe?=
+ =?us-ascii?Q?Oc+wNgHPRSxC9p79AubySDtV6+hO18DZhywbfqidTd5gvmZK2s+uZBLpZz2s?=
+ =?us-ascii?Q?NyJrCWFcR7QDVEmW4SmTdr9wgIr/JfgAzdpD3/F+1e0SvkwhaQLq01pHqYHJ?=
+ =?us-ascii?Q?6nm1KE7Spn+D2HEsoaQZlGnzO0XxU3rY9HhRQi1cyFCHfHk4qqJpEFJKpYU2?=
+ =?us-ascii?Q?E544DSNlbOdsssOJm1uC3HA6bp5W7JAGNEzETvbT2lEX/XfJ3/qOu1gYXj3J?=
+ =?us-ascii?Q?hegTMf1cf0kJCKFfNc/cg5UE/R5mIz8fMNNW70JjnHV8w4eCH/xvzOfA2HPo?=
+ =?us-ascii?Q?FP3L4dLd2GQqg21ev2TDiFts0hzgJpUCVmMAsXNCKARSs+k42SddJtn2K7de?=
+ =?us-ascii?Q?Kwpp7ZcgStwwNFJTbOQj5ddUl18LIfOJUSodLoE1MbVE7O+dy/gxWWR91AWf?=
+ =?us-ascii?Q?aywQXjdrkUaepzdSXAzX8ksZfl7qCgoVsncnQOrZl4neelRHXYox7eU2N7HN?=
+ =?us-ascii?Q?yOd/hlIgsImEY+/K/61htyciTJHj7GHg5SP5DIXksHfhOauxwzDVlmmMUMvD?=
+ =?us-ascii?Q?yWh6Z8kYim4eNtdulT2Im70901SF6NR9Yf5QJQtszqDZmVjeh1ip0+nnvSnQ?=
+ =?us-ascii?Q?7Tee1iqQmU4Lv52GQmQuyck7twKeooTXIxnP+tH1WO9Y9ayEnEmIbEN284sz?=
+ =?us-ascii?Q?ttBJlV1QvoRQ2IKgKx8E83OqyhSJeaReLjSqbN+SmMsYJ4w7B+qojQiFVh79?=
+ =?us-ascii?Q?Aixkgj2N2r3SIRg0dyqf2X/5icnzh2c1eukr36vjl5gQ0Z7o2qJh9FtnfAPI?=
+ =?us-ascii?Q?/w2EpL6EG+Ba9SigC7UTUB9NEcEG1+th5AcZLE3wx4xXy7GXS6nTifOwRMj6?=
+ =?us-ascii?Q?WR4VjYY1KIJpd7T5MkknEjgWYwQVpGp7l31o6Sw/MqgWf2RZRCD0sxMMDx1Z?=
+ =?us-ascii?Q?OQmHvslTAOg7LMyC3SGiMRoxWF0owWogNSUb+9WtEl2GUDW2Juq2J8tfTn6Q?=
+ =?us-ascii?Q?/gCCytA0w9UvmFYRg/0OjxqJtBje9D+Hx7p2ebzSbnMB1VEu7IEpq30U4PmO?=
+ =?us-ascii?Q?RrvobLVWmwTTFNJSGv+YrKiI3ZyvHWfHBBAEKGskqBu66rcfct0XGfdYABPv?=
+ =?us-ascii?Q?PaHFxVELOY+/8Q9oZSsgG48XEi1OKKblhFTzaMOVKrZ4yzvpHXSkHMfqmhdg?=
+ =?us-ascii?Q?YmO2258d4HJKyx/DcrTRYv91+9DekWfiLxAzl7Nxzx3NcZhpTYITJrO0pqx/?=
+ =?us-ascii?Q?NMvf43LLFpN5OKiQ75NiliC+DDI/wYyaUR7CmpNAi2WeFsFHzD1v+rkpeCu+?=
+ =?us-ascii?Q?K1t0?=
+Content-Type: multipart/alternative;
+	boundary="_000_0100019bf7ca3d04e0fd1ece694d461c8a2cf4104c2b0f11000000e_"
+MIME-Version: 1.0
+
+--_000_0100019bf7ca3d04e0fd1ece694d461c8a2cf4104c2b0f11000000e_
+Content-Type: text/plain; charset="us-ascii"
+
+Guys,
+
+Hopefully everyone is safe and warm and not negatively impacted by the weather.  Given that the University moved all classes to remote learning, we have to pivot.
+
+Only a few of you submitted your proposals, which means that I won't be able to provide feedback before class tomorrow.  I know that I asked you to record your presentations, but since only three people actually submitted their recordings, we will pivot to presentations tomorrow.
+
+We will meet on Zoom at noon and every students will pitch their project idea to the rest of the class.  Please make sure that your presentations are "elevator pitch style" - in other words, presentations should not be more than 5 minutes.  Since this is a last-minute change, I'm not going to enforce a particular way of organizing your presentation.  As long as you get across your motivation, project description, and why this project may be interesting to others in the class, that should be sufficient.
+
+We will meet on Zoom at the following link: https://pitt.zoom.us/j/6119545767
+
+[https://du11hjcvx0uqb.cloudfront.net/dist/images/email_signature-d2c5880612.png]
+View announcement <https://canvas.pitt.edu/courses/356182/announcements/1882658>  |  Update your notification settings<https://canvas.pitt.edu/profile/communication>
+
+--_000_0100019bf7ca3d04e0fd1ece694d461c8a2cf4104c2b0f11000000e_
+Content-Type: text/html; charset="us-ascii"
+Content-ID: <FCD66902DBBF024488F83EC19789A278@namprd04.prod.outlook.com>
+
+<!DOCTYPE html>
+<html dir="ltr" lang="en">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=us-ascii">
+<meta name="viewport" content="width=device-width">
+<style type="text/css">
+/*
+Changes to font size (14->16) for smaller screens
+table[class=body] is the only selector that works for all vendors
+*/
+@media only screen and (max-width: 620px) {
+  table[class=body] p,
+  table[class=body] ul,
+  table[class=body] ol,
+  table[class=body] td,
+  table[class=body] span,
+  table[class=body] a {
+    font-size: 16px !important;
+  }
+  /* remove padding for mobile so no gray shows */
+  table[class=body] .bodycell {
+    padding: 0 !important;
+    width: 100% !important;
+  }
+  /* reduce padding from 20->10 for mobile */
+  table[class=body] .maincell {
+    padding: 10px !important;
+  }
+}
+/*
+ExternalClass fixes Outlook.com / Hotmail emails
+*/
+@media all {
+  .ExternalClass {
+    width: 100%;
+  }
+  .ExternalClass,
+  .ExternalClass p,
+  .ExternalClass span,
+  .ExternalClass font,
+  .ExternalClass td,
+  .ExternalClass div {
+    line-height: 100%;
+  }
+}
+  </style><!--
+background: white (could be gray)
+default sans serif fonts, 14px, 1.3, #444444
+vendor prefixes for Outlook (-ms) and iOS (-webkit)
+Margin is capitalized to fix Outlook.com
+-->
+</head>
+<body class="" style="background-color:#ffffff; font-family:'Open Sans', 'Lucida Grande', 'Segoe UI', Arial, Verdana, 'Lucida Sans Unicode', Tahoma, 'Sans Serif'; font-size:14px; color: #444444; line-height:1.3; Margin:0; padding:0; -ms-text-size-adjust:100%; -webkit-font-smoothing:antialiased; -webkit-text-size-adjust:100%;">
+<!-- body: background table (if body has a color, this should match) -->
+<table border="0" cellpadding="0" cellspacing="0" class="body" style="border-collapse:separate; background-color:#ffffff; width:100%; box-sizing:border-box; mso-table-lspace:0pt; mso-table-rspace:0pt;">
+<tbody>
+<tr>
+<!-- width and max-width so it can scale for mobile -->
+<td class="bodycell" style="max-width:600px; width:100%; font-family:'Open Sans', 'Lucida Grande', 'Segoe UI', Arial, Verdana, 'Lucida Sans Unicode', Tahoma, 'Sans Serif'; font-size:14px; vertical-align:top; display:block; box-sizing:border-box; padding:10px; Margin:0 auto !important;">
+<!-- for older versions of Outlook that don't support max-width --><!--[if (gte mso 9)|(IE)]>
+<table width="600" align="center" cellpadding="0" cellspacing="0" border="0"><tr><td>
+<![endif]--><!-- main: white box for content -->
+<table class="main" style="background:#fff; width:100%; border-collapse:separate; mso-table-lspace:0pt; mso-table-rspace:0pt; ">
+<tbody>
+<tr>
+<td class="maincell" style="font-family:sans-serif; font-size:14px; vertical-align:top; box-sizing:border-box; padding:20px;">
+<p>Guys,</p>
+<p>Hopefully everyone is safe and warm and not negatively impacted by the weather.&nbsp; Given that the University moved all classes to remote learning, we have to pivot.&nbsp;</p>
+<p>Only a few of you submitted your proposals, which means that I won't be able to provide feedback before class tomorrow.&nbsp; I know that I asked you to record your presentations, but since only three people actually submitted their recordings, we will pivot
+ to presentations tomorrow.</p>
+<p>We will meet on Zoom at noon and every students will pitch their project idea to the rest of the class.&nbsp; Please make sure that your presentations are &quot;elevator pitch style&quot; - in other words, presentations should not be more than 5 minutes.&nbsp; Since this is
+ a last-minute change, I'm not going to enforce a particular way of organizing your presentation.&nbsp; As long as you get across your motivation, project description, and why this project may be interesting to others in the class, that should be sufficient.</p>
+<p>We will meet on Zoom at the following link:&nbsp;<a href="https://pitt.zoom.us/j/6119545767">https://pitt.zoom.us/j/6119545767</a></p>
+</td>
+</tr>
+</tbody>
+</table>
+<!-- /.main --><!-- logo: branding -->
+<table class="logo" style="width:100%; box-sizing:border-box; border-collapse:separate; mso-table-lspace:0pt; mso-table-rspace:0pt; ">
+<tbody>
+<tr>
+<td class="logocell" style="text-align:center; vertical-align:top; box-sizing:border-box; padding:10px;">
+<img src="https://du11hjcvx0uqb.cloudfront.net/dist/images/email_signature-d2c5880612.png" alt="">
+</td>
+</tr>
+</tbody>
+</table>
+<!-- /.logo --><!-- footer: gray text below main -->
+<table class="footer" style="width:100%; box-sizing:border-box; border-collapse:separate; mso-table-lspace:0pt; mso-table-rspace:0pt; ">
+<tbody>
+<tr>
+<td class="footercell" style="font-family:sans-serif; font-size:14px; vertical-align:top; color:#a8b9c6; font-size:12px; text-align:center; padding:10px; box-sizing:border-box; ">
+<a href="https://canvas.pitt.edu/courses/356182/announcements/1882658">View announcement
+</a>&nbsp;|&nbsp; <a href="https://canvas.pitt.edu/profile/communication" style="white-space: nowrap;">
+Update your notification settings</a> </td>
+</tr>
+</tbody>
+</table>
+<!-- /.footer --><!--[if (gte mso 9)|(IE)]>
+</td></tr></table>
+<![endif]--></td>
+</tr>
+</tbody>
+</table>
+<!-- /.body -->
+</body>
+</html>
+
+--_000_0100019bf7ca3d04e0fd1ece694d461c8a2cf4104c2b0f11000000e_--
