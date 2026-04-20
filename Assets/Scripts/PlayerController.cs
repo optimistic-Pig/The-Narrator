@@ -115,7 +115,9 @@ Debug.Log("Did Hit, interview");
                     playerCamera.enabled = false;
                     interviewCamera.enabled = true;
                     onOfficeCam = false;
-                    dialogueManager.ShowBriefing();
+                    // Pass the specific NPC's InterviewBase so the briefing knows who to start
+                    var interview = hit.collider.GetComponentInParent<InterviewBase>();
+                    dialogueManager.ShowBriefing(interview);
                 }
                 //If hit something with the office tag does the opposite, hides mouse but allows player to move, also swithces camera
                 if (hit.collider.CompareTag("Office"))

@@ -6,7 +6,7 @@ using TMPro;
 /// <summary>
 /// Character-agnostic dialogue UI controller.
 /// Handles Canvas panels, phase flow, translation, dictionary, headlines,
-/// and day management. The actual dialogue content comes from InterviewBase subclasses.
+/// paragraph-by-paragraph article writing, scoring, and day management.
 /// </summary>
 public class DialogueManager : MonoBehaviour
 {
@@ -29,7 +29,7 @@ public class DialogueManager : MonoBehaviour
     [Header("Dictionary Panel")]
     public GameObject dictionaryPanel;
     public TextMeshProUGUI dictionaryLookUpsText;
-    public TextMeshProUGUI[] dictionarySlots;       // assign up to ~6 in inspector
+    public TextMeshProUGUI[] dictionarySlots;
 
     [Header("Screen Panels")]
     public GameObject briefingPanel;
@@ -39,21 +39,49 @@ public class DialogueManager : MonoBehaviour
     public TextMeshProUGUI endOfDaySummaryText;
 
     [Header("Interviews")]
-    public InterviewBase[] availableInterviews;     // all interviewees for this day
+    public InterviewBase[] availableInterviews;
+
+    // =====================================================================
+    // SCORING
+    // =====================================================================
+
+    [HideInInspector] public int marsOpinionScore = 0;
+    [HideInInspector] public int truthfulCount = 0;
+    [HideInInspector] public int dishonestCount = 0;
+    [HideInInspector] public int ambitiousCount = 0;
+
+    // =====================================================================
+    // DAY MANAGEMENT
+    // =====================================================================
+
+    [HideInInspector] public int currentDay = 1;
+    public int totalDays = 3;
 
     // =====================================================================
     // PRIVATE STATE
     // =====================================================================
 
-    private enum Phase { Dialogue, EndTransition, Headline, Tone, Article, DayEnd }
+    private enum Phase { Dialogue, EndTransition, Headline, ArticleWriting, ArticleComplete, DayEnd }
     private Phase currentPhase = Phase.Dialogue;
 
-    private InterviewBase current;                  // who we're talking to right now
+    private InterviewBase current;
     private int dictionaryLookUps = 0;
     private float articleChosen = 0f;
     private List<InterviewBase> completedToday = new List<InterviewBase>();
 
-    // Raw (untranslated) text for live re-translation
+    // Article writing state
+    private InterviewBase.ArticleTemplate currentArticle;
+    private int currentParagraphIndex = 0;
+    private readonly List<string> articleLines = new List<string>();
+
+    // Headline slot mapping: button position (0-3) → actual Headlines[] index
+    // -1 means that slot is empty / unused
+    private readonly int[] headlineSlotToIndex = new int[4] { -1, -1, -1, -1 };
+
+    // The NPC the player clicked on — set by ShowBriefing(), used by BeginInterview()
+    private InterviewBase pendingInterview;
+
+    // Raw text for re-translation on dictionary lookup
     private string rawMainText = "";
     private string rawOpt1 = "";
     private string rawOpt2 = "";
@@ -66,13 +94,9 @@ public class DialogueManager : MonoBehaviour
 
     public void Start()
     {
-        // Hide ALL dialogue UI on game start — player sees only the 3D world + crosshair
         HideAllPanels();
     }
 
-    /// <summary>
-    /// Hides every dialogue panel.
-    /// </summary>
     private void HideAllPanels()
     {
         if (briefingPanel != null)   briefingPanel.SetActive(false);
@@ -83,20 +107,16 @@ public class DialogueManager : MonoBehaviour
     }
 
     /// <summary>
-    /// Call from PlayerController when the player clicks on an NPC.
-    /// Shows the briefing screen with "Begin Interview" and "Return to Office" buttons.
+    /// Call from PlayerController when the player clicks an NPC.
+    /// Pass the NPC's InterviewBase so BeginInterview() knows who to start.
     /// </summary>
-    public void ShowBriefing()
+    public void ShowBriefing(InterviewBase interview = null)
     {
+        if (interview != null) pendingInterview = interview;
         HideAllPanels();
         if (briefingPanel != null) briefingPanel.SetActive(true);
     }
 
-    /// <summary>
-    /// Call from the "Return to Office" button on the briefing panel.
-    /// Hides all UI so the player is back in the 3D world.
-    /// PlayerController should also re-enable movement and lock the cursor.
-    /// </summary>
     public void ReturnToOffice()
     {
         HideAllPanels();
@@ -106,10 +126,6 @@ public class DialogueManager : MonoBehaviour
     // INTERVIEW LIFECYCLE
     // =====================================================================
 
-    /// <summary>
-    /// Call to begin an interview with a specific character.
-    /// Wire this to a character-select button or call from the briefing panel.
-    /// </summary>
     public void StartInterview(InterviewBase interview)
     {
         current = interview;
@@ -118,7 +134,6 @@ public class DialogueManager : MonoBehaviour
         dictionaryLookUps = current.StartingLookups;
         articleChosen = 0f;
 
-        // Reset raw text
         rawMainText = ""; rawOpt1 = ""; rawOpt2 = ""; rawOpt3 = ""; rawOpt4 = "";
 
         if (briefingPanel != null) briefingPanel.SetActive(false);
@@ -135,16 +150,10 @@ public class DialogueManager : MonoBehaviour
         InitDictionarySlots();
         ShowAllOptions();
 
-        // Run the character's opening dialogue
         current.DialogueSetter(0f, this);
-
         RefreshDictionaryVisibility();
     }
 
-    /// <summary>
-    /// Convenience: start interview at index in availableInterviews.
-    /// Wire character-select buttons to this with the index parameter.
-    /// </summary>
     public void StartInterviewByIndex(int index)
     {
         if (availableInterviews != null && index >= 0 && index < availableInterviews.Length)
@@ -152,12 +161,15 @@ public class DialogueManager : MonoBehaviour
     }
 
     /// <summary>
-    /// No-parameter version for easy button wiring.
-    /// Starts the first available interview. Use for "Begin Interview" buttons.
+    /// Wire this to the "Begin Interview" button on the briefing panel.
+    /// Starts whichever NPC the player clicked on.
     /// </summary>
     public void BeginInterview()
     {
-        StartInterviewByIndex(0);
+        if (pendingInterview != null)
+            StartInterview(pendingInterview);
+        else
+            StartInterviewByIndex(0);   // fallback
     }
 
     // =====================================================================
@@ -189,11 +201,8 @@ public class DialogueManager : MonoBehaviour
         return result;
     }
 
-    /// <summary>
-    /// Stores raw text, detects seen words and topics, applies translations.
-    /// Called by each interview's DialogueSetter.
-    /// </summary>
-    public void SetDialogueTexts(string main, string opt1 = null, string opt2 = null, string opt3 = null, string opt4 = null)
+    public void SetDialogueTexts(string main, string opt1 = null, string opt2 = null,
+                                  string opt3 = null, string opt4 = null)
     {
         if (main != null) rawMainText = main;
         if (opt1 != null) rawOpt1 = opt1;
@@ -224,11 +233,11 @@ public class DialogueManager : MonoBehaviour
 
     private void ApplyTranslations()
     {
-        mainText.text = TranslateText(rawMainText);
-        optionOne.text = TranslateText(rawOpt1);
-        optionTwo.text = TranslateText(rawOpt2);
+        mainText.text  = TranslateText(rawMainText);
+        optionOne.text  = TranslateText(rawOpt1);
+        optionTwo.text  = TranslateText(rawOpt2);
         optionThree.text = TranslateText(rawOpt3);
-        optionFour.text = TranslateText(rawOpt4);
+        optionFour.text  = TranslateText(rawOpt4);
         ScrollToTop();
     }
 
@@ -257,7 +266,6 @@ public class DialogueManager : MonoBehaviour
         for (int i = 0; i < dictionarySlots.Length; i++)
         {
             if (i < current.DictionaryEntries.Length)
-                //dictionarySlots[i].text = current.DictionaryEntries[i].klingonWord + " = ???";
                 dictionarySlots[i].gameObject.SetActive(true);
             else
                 dictionarySlots[i].gameObject.SetActive(false);
@@ -279,10 +287,6 @@ public class DialogueManager : MonoBehaviour
         }
     }
 
-    /// <summary>
-    /// Call from dictionary entry buttons. Button index is 1-based
-    /// and maps to the character's DictionaryEntries array (0-based).
-    /// </summary>
     public void DictionaryLookup(int oneBasedIndex)
     {
         if (current == null) return;
@@ -321,6 +325,7 @@ public class DialogueManager : MonoBehaviour
     {
         switch (currentPhase)
         {
+            // ── Dialogue ──────────────────────────────────────────────────
             case Phase.Dialogue:
                 if (current == null) return;
                 current.DialogueSetter(option, this);
@@ -343,6 +348,7 @@ public class DialogueManager : MonoBehaviour
                 }
                 break;
 
+            // ── EndTransition → Headline ──────────────────────────────────
             case Phase.EndTransition:
                 currentPhase = Phase.Headline;
 
@@ -354,33 +360,27 @@ public class DialogueManager : MonoBehaviour
 
                 ShowAllOptions();
                 triesText.gameObject.SetActive(false);
-
-                string[] hLabels = BuildHeadlineLabels();
-                SetDialogueTexts("Choose your article headline",
-                    hLabels[0], hLabels[1], hLabels[2], hLabels[3]);
+                BuildAndShowHeadlines();
                 break;
 
+            // ── Headline → ArticleWriting ─────────────────────────────────
             case Phase.Headline:
-                int idx = Mathf.RoundToInt(option) - 1;
-                if (idx < 0 || current == null || idx >= current.Headlines.Length) return;
-                if (!IsHeadlineUnlocked(idx)) return;
+                int slot = Mathf.RoundToInt(option) - 1;   // button 1-4 → slot 0-3
+                if (slot < 0 || slot >= 4) return;
+                int headlineIdx = headlineSlotToIndex[slot];
+                if (headlineIdx < 0) return;                // empty slot, ignore
 
-                currentPhase = Phase.Tone;
-                articleChosen = option;
-                optionOne.gameObject.SetActive(true);
-                optionTwo.gameObject.SetActive(true);
-                optionThree.gameObject.SetActive(true);
-                optionFour.gameObject.SetActive(false);
-                SetDialogueTexts("What tone do you want to write with?",
-                    "Pro Martian", "Neutral", "Pro Human", "");
+                articleChosen = headlineIdx;                // store actual headline index
+                StartArticleWriting(headlineIdx);
                 break;
 
-            case Phase.Tone:
-                currentPhase = Phase.Article;
-                ArticleSelector(option);
+            // ── ArticleWriting ────────────────────────────────────────────
+            case Phase.ArticleWriting:
+                HandleParagraphChoice(option);
                 break;
 
-            case Phase.Article:
+            // ── ArticleComplete → DayEnd ──────────────────────────────────
+            case Phase.ArticleComplete:
                 ShowEndOfDay();
                 break;
         }
@@ -404,42 +404,151 @@ public class DialogueManager : MonoBehaviour
                        (h.requiredTopicIndex < current.Topics.Length &&
                         current.Topics[h.requiredTopicIndex].encountered);
 
-        return dictOk && topicOk;
+        return dictOk && topicOk && current.IsAdditionalHeadlineConditionMet(index);
     }
 
-    private string[] BuildHeadlineLabels()
+    /// <summary>
+    /// Collects the first 4 unlocked headlines from the full Headlines array,
+    /// assigns them to button slots 1-4, and shows the headline choice screen.
+    /// Works regardless of how many total headlines the character has.
+    /// </summary>
+    private void BuildAndShowHeadlines()
     {
-        string[] labels = new string[4];
-        for (int i = 0; i < 4; i++)
+        // Reset slot mapping
+        for (int i = 0; i < 4; i++) headlineSlotToIndex[i] = -1;
+
+        int slot = 0;
+        if (current != null)
         {
-            if (current != null && i < current.Headlines.Length)
-                labels[i] = IsHeadlineUnlocked(i) ? current.Headlines[i].text : "Locked";
-            else
-                labels[i] = "";
+            for (int i = 0; i < current.Headlines.Length && slot < 4; i++)
+            {
+                if (IsHeadlineUnlocked(i))
+                {
+                    headlineSlotToIndex[slot] = i;
+                    slot++;
+                }
+            }
         }
-        return labels;
+
+        // Build button labels from the slot map
+        string[] labels = new string[4];
+        TextMeshProUGUI[] buttons = { optionOne, optionTwo, optionThree, optionFour };
+        for (int s = 0; s < 4; s++)
+        {
+            if (headlineSlotToIndex[s] >= 0)
+            {
+                labels[s] = current.Headlines[headlineSlotToIndex[s]].text;
+                buttons[s].gameObject.SetActive(true);
+            }
+            else
+            {
+                labels[s] = "";
+                buttons[s].gameObject.SetActive(false);
+            }
+        }
+
+        SetDialogueTexts("Choose your article headline:",
+            labels[0], labels[1], labels[2], labels[3]);
     }
 
     // =====================================================================
-    // ARTICLE
+    // ARTICLE WRITING
     // =====================================================================
 
-    private void ArticleSelector(float option)
+    private void StartArticleWriting(int headlineIndex)
     {
-        optionOne.gameObject.SetActive(false);
+        currentPhase = Phase.ArticleWriting;
+        currentParagraphIndex = 0;
+        articleLines.Clear();
+
+        currentArticle = null;
+        if (current != null && current.ArticleTemplates != null)
+            foreach (var t in current.ArticleTemplates)
+                if (t.headlineIndex == headlineIndex) { currentArticle = t; break; }
+
+        if (currentArticle == null ||
+            currentArticle.paragraphs == null ||
+            currentArticle.paragraphs.Length == 0)
+        {
+            Debug.LogWarning($"[DialogueManager] No ArticleTemplate for headline index {headlineIndex}.");
+            ShowArticleComplete();
+            return;
+        }
+
+        ShowCurrentParagraph();
+    }
+
+    private void ShowCurrentParagraph()
+    {
+        var para = currentArticle.paragraphs[currentParagraphIndex];
+
+        string built = "";
+        for (int i = 0; i < articleLines.Count; i++)
+            built += articleLines[i] + "\n\n";
+        if (articleLines.Count > 0)
+            built += "\u2014\u2014\u2014\u2014\n\n";
+
+        built += $"[{currentParagraphIndex + 1}/{currentArticle.paragraphs.Length}] {para.promptText}";
+
+        SetDialogueTexts(built,
+            para.truthful.text,
+            para.dishonest.text,
+            para.ambitious.text,
+            "");
+
+        optionOne.gameObject.SetActive(true);
+        optionTwo.gameObject.SetActive(true);
+        optionThree.gameObject.SetActive(true);
+        optionFour.gameObject.SetActive(false);
+
+        triesText.gameObject.SetActive(true);
+        triesText.text = $"Writing article... ({currentParagraphIndex + 1}/{currentArticle.paragraphs.Length})";
+    }
+
+    private void HandleParagraphChoice(float option)
+    {
+        if (currentArticle == null) return;
+        var para = currentArticle.paragraphs[currentParagraphIndex];
+
+        InterviewBase.ParagraphChoice chosen;
+        if      (option == 1f) { chosen = para.truthful;  truthfulCount++;  }
+        else if (option == 2f) { chosen = para.dishonest; dishonestCount++; }
+        else if (option == 3f) { chosen = para.ambitious; ambitiousCount++; }
+        else return;
+
+        marsOpinionScore += chosen.scoreEffect;
+        articleLines.Add(chosen.text);
+        currentParagraphIndex++;
+
+        if (currentParagraphIndex >= currentArticle.paragraphs.Length)
+            ShowArticleComplete();
+        else
+            ShowCurrentParagraph();
+    }
+
+    private void ShowArticleComplete()
+    {
+        currentPhase = Phase.ArticleComplete;
+
+        int hIdx = Mathf.RoundToInt(articleChosen);
+        string headline = (current != null && hIdx >= 0 && hIdx < current.Headlines.Length)
+            ? current.Headlines[hIdx].text : "Unknown";
+
+        string fullArticle = $"\u2014\u2014 {headline} \u2014\u2014\n\n";
+        foreach (var line in articleLines)
+            fullArticle += line + "\n\n";
+
+        SetDialogueTexts(fullArticle, "", "", "", "");
+
+        optionOne.gameObject.SetActive(true);
+        optionOne.text = "Publish";
         optionTwo.gameObject.SetActive(false);
         optionThree.gameObject.SetActive(false);
         optionFour.gameObject.SetActive(false);
 
-        string tone = option == 1f ? "Pro Martian" : option == 2f ? "Neutral" : "Pro Human";
-        int hIdx = Mathf.RoundToInt(articleChosen) - 1;
-        string headline = (current != null && hIdx >= 0 && hIdx < current.Headlines.Length)
-            ? current.Headlines[hIdx].text : "Unknown";
-
-        SetDialogueTexts("[ARTICLE: '" + headline + "' \u2014 " + tone + "]\n\nTODO: Article text here.");
-
-        optionOne.gameObject.SetActive(true);
-        optionOne.text = "Finish";
+        triesText.gameObject.SetActive(true);
+        triesText.text = $"Day {currentDay}  |  Score: {marsOpinionScore}  "
+                       + $"(T:{truthfulCount}  D:{dishonestCount}  A:{ambitiousCount})";
     }
 
     // =====================================================================
@@ -460,7 +569,11 @@ public class DialogueManager : MonoBehaviour
         {
             endOfDayPanel.SetActive(true);
             if (endOfDaySummaryText != null && current != null)
-                endOfDaySummaryText.text = current.GetEndOfDaySummary();
+            {
+                string summary = current.GetEndOfDaySummary();
+                summary += $"\n\nCumulative score: {marsOpinionScore}";
+                endOfDaySummaryText.text = summary;
+            }
         }
 
         optionOne.gameObject.SetActive(false);
@@ -470,11 +583,14 @@ public class DialogueManager : MonoBehaviour
     }
 
     /// <summary>
-    /// Call from the end-of-day panel's "Continue" button.
-    /// Returns to briefing/character select for the next interview or day.
+    /// Call from the end-of-day "Continue" button.
+    /// Advances the day counter and returns to briefing.
+    /// TODO Day 3: force-start Gorp's interview here instead of showing briefing.
     /// </summary>
     public void EndOfDayContinue()
     {
+        currentDay++;
+
         if (endOfDayPanel != null) endOfDayPanel.SetActive(false);
         if (briefingPanel != null) briefingPanel.SetActive(true);
         currentPhase = Phase.Dialogue;
