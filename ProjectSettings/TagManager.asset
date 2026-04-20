@@ -10,6 +10,15 @@ TagManager:
   - Option2
   - Option3
   - Option4
+  - 'Office '
+  - Dictionary1
+  - Dictionary2
+  - Dictionary3
+  - Dictionary4
+  - Dictionary5
+  - DictionaryOpen
+  - DictionaryClose
+  - Article
   layers:
   - Default
   - TransparentFX

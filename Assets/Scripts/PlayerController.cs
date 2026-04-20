@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using Unity.VisualScripting;
 using UnityEngine;
 
 [RequireComponent(typeof(CharacterController))]
@@ -18,12 +19,34 @@ public class PlayerMovement : MonoBehaviour
     public float crouchHeight = 1f;
     public float crouchSpeed = 3f;
 
+    public GameObject dictionaryButton;
+    public GameObject dictionaryScreen;
+    public GameObject crosshair;
+
     private Vector3 moveDirection = Vector3.zero;
     private float rotationX = 0;
     private CharacterController characterController;
 
     private bool canMove = true;
     private bool onOfficeCam = true;
+
+    /// <summary>
+    /// Call from the "Return to Office" button.
+    /// Restores player movement, locks cursor, and switches back to player camera.
+    /// </summary>
+    public void ReturnToOffice()
+    {
+        canMove = true;
+        Cursor.lockState = CursorLockMode.Locked;
+        Cursor.visible = false;
+        playerCamera.enabled = true;
+        interviewCamera.enabled = false;
+        onOfficeCam = true;
+        crosshair.gameObject.SetActive(true);
+        dictionaryButton.SetActive(true);
+        dictionaryScreen.SetActive(false);
+        dialogueManager.ReturnToOffice();
+    }
 
     //this runs as soon as the game scene is laoded
     void Start()
@@ -88,39 +111,76 @@ Debug.Log("Did Hit, interview");
                     canMove = false;
                     Cursor.lockState = CursorLockMode.None;
                     Cursor.visible = true;
+                    crosshair.gameObject.SetActive(false);
                     playerCamera.enabled = false;
                     interviewCamera.enabled = true;
                     onOfficeCam = false;
+                    dialogueManager.ShowBriefing();
                 }
                 //If hit something with the office tag does the opposite, hides mouse but allows player to move, also swithces camera
-                else if (hit.collider.CompareTag("Office"))
+                if (hit.collider.CompareTag("Office"))
                 {
 Debug.Log("Did Hit, office");
-                    canMove = true;
-                    Cursor.lockState = CursorLockMode.Locked;
-                    Cursor.visible = false;
-                    playerCamera.enabled = true;
-                    interviewCamera.enabled = false;
-                    onOfficeCam = true;
+                    ReturnToOffice();
                 }
+                if (hit.collider.CompareTag("DictionaryOpen"))
+                {
+                    dictionaryButton.SetActive(false);
+                    dictionaryScreen.SetActive(true);
+Debug.Log("Dictionary");
+                }
+                if (hit.collider.CompareTag("DictionaryClose"))
+                {
+                    dictionaryButton.SetActive(true);
+                    dictionaryScreen.SetActive(false);
+Debug.Log("Dictionary");
+                }
+                if (hit.collider.CompareTag("Dictionary1"))
+                {
+                    dialogueManager.DictionaryLookup(1);
+Debug.Log("Dictionary");
+                }
+                if (hit.collider.CompareTag("Dictionary2"))
+                {
+                    dialogueManager.DictionaryLookup(2);
+Debug.Log("Dictionary");
+                }
+                if (hit.collider.CompareTag("Dictionary3"))
+                {
+                    dialogueManager.DictionaryLookup(3);
+Debug.Log("Dictionary");
+                }
+                if (hit.collider.CompareTag("Dictionary4"))
+                {
+                    dialogueManager.DictionaryLookup(4);
+Debug.Log("Dictionary");
+                }
+                if (hit.collider.CompareTag("Dictionary5"))
+                {
+                    dialogueManager.DictionaryLookup(5);
+Debug.Log("Dictionary");
+                }
+
                 //these options will let the dialouge manager know there is a new option and that script will dictate what dialogue to choose from
-                else if (hit.collider.CompareTag("Option1"))
+                // Uses BOTH tag and name detection to work around Unity tag serialization issues
+                string hitName = hit.collider.gameObject.name;
+
+                if (hit.collider.CompareTag("Option1") || hitName.Contains("Option 1") || hitName.Contains("Option  1"))
                 {
                     dialogueManager.OptionClicked(1.0f);
 Debug.Log("option 1");
                 }
-
-                else if (hit.collider.CompareTag("Option2"))
+                else if (hit.collider.CompareTag("Option2") || hitName.Contains("Option 2") || hitName.Contains("Option  2"))
                 {
                     dialogueManager.OptionClicked(2.0f);
 Debug.Log("option 2");
                 }
-                else if (hit.collider.CompareTag("Option3"))
+                else if (hit.collider.CompareTag("Option3") || hitName.Contains("Option 3") || hitName.Contains("Option  3"))
                 {
                     dialogueManager.OptionClicked(3.0f);
 Debug.Log("option 3");
                 }
-                else if (hit.collider.CompareTag("Option4"))
+                else if (hit.collider.CompareTag("Option4") || hitName.Contains("Option 4") || hitName.Contains("Option  4"))
                 {
                     dialogueManager.OptionClicked(4.0f);
 Debug.Log("option 4");
