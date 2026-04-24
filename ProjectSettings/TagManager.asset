@@ -19,6 +19,7 @@ TagManager:
   - DictionaryOpen
   - DictionaryClose
   - Article
+  - Desk
   layers:
   - Default
   - TransparentFX

@@ -1142,7 +1142,7 @@ public class IzulInterview : InterviewBase
         {
             dm.optionThree.gameObject.SetActive(false); dm.optionFour.gameObject.SetActive(false);
             if (option == 1.0f) { dm.optionOne.gameObject.SetActive(false); dm.optionTwo.gameObject.SetActive(false); dm.SetDialogueTexts("It can be reversed, but it would need drastic effort from nuqneH to work with the Martians. Cooperation, not exploitation."); }
-            else if (option == 2.0f) { dm.optionOne.gameObject.SetActive(false); dm.optionTwo.gameObject.SetActive(false); dm.SetDialogueTexts("He's glad you asked. Your paper could be the start. Please, bring awareness to the geographer's findings. The topography, vegetation, and atmosphere are in danger!"); }
+            else if (option == 2.0f) { dm.optionOne.gameObject.SetActive(false); dm.optionTwo.gameObject.SetActive(false); dm.SetDialogueTexts("He's glad you asked. That was a lot to digest \u2014 I better go report on it at my desk."); }
         }
 
         // NODE 87
