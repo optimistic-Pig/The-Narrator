@@ -70,6 +70,16 @@ public class GameStateManager : MonoBehaviour
     private readonly HashSet<CharacterID> interviewed  = new HashSet<CharacterID>();
     private InterviewBase                 activeNPC    = null;
 
+    // NOTE: IsPromoCodeFound / IsBunkerDialogueFound read from the same
+    // properties that the Set…() methods write to.  The private _xxx fields
+    // below have been removed to avoid the silent "always-false" bug.
+    public bool IsPromoCodeFound()      => HasPromoCode;
+    public bool IsBunkerDialogueFound() => HasBunkerDialogue;
+    public void SetSecretEndingFound()  { _secretEndingFound = true; }
+    public bool IsSecretEndingFound()   => _secretEndingFound;
+    private bool _secretEndingFound;
+
+
     /// <summary>Fired whenever NPC lock states or day changes — PlayerController can subscribe.</summary>
     public System.Action OnStateChanged;
 
@@ -194,7 +204,11 @@ public class GameStateManager : MonoBehaviour
     /// </summary>
     public EndingType GetEnding(int score)
     {
-        if (HasPromoCode && HasBunkerDialogue) return EndingType.Secret;
+        // Secret ending: either the full Kortnara→Gorp→Andrew path was completed
+        // (Andrew node 284 sets _secretEndingFound), OR both earlier flags are
+        // already present (equivalent, but kept as fallback).
+        if (_secretEndingFound || (HasPromoCode && HasBunkerDialogue))
+            return EndingType.Secret;
         if (score >  2) return EndingType.ProMartian;
         if (score < -2) return EndingType.ProHuman;
         return EndingType.ProSelf;

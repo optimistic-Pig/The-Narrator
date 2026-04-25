@@ -119,6 +119,8 @@ public class EndingManager : MonoBehaviour
         if (endingTitleText != null) endingTitleText.text = title;
         if (endingBodyText  != null) endingBodyText.text  = body;
         if (endingPanel     != null) endingPanel.SetActive(true);
+        var pm = FindObjectOfType<PlayerMovement>();
+        if (pm != null) pm.enabled = false;
 
         Debug.Log($"[EndingManager] Triggering ending: {type}  (score: {finalScore})");
     }

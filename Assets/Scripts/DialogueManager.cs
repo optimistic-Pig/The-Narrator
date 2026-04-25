@@ -121,12 +121,33 @@ public class DialogueManager : MonoBehaviour
     private bool _snapOpt1, _snapOpt2, _snapOpt3, _snapOpt4;
 
     // =====================================================================
+    // AWAKE  —  runs before Start() on every script
+    // =====================================================================
+
+    void Awake()
+    {
+        // Panels may be left active in the saved scene from a previous
+        // play-mode session or editor edit.  Hiding them in Awake() ensures
+        // they are gone from frame 0, before any other script's Start() runs
+        // and before the first render — preventing the UI from blocking NPC clicks.
+        if (interviewPanel  != null) interviewPanel.SetActive(false);
+        if (briefingPanel   != null) briefingPanel.SetActive(false);
+        if (summaryPanel    != null) summaryPanel.SetActive(false);
+        if (endOfDayPanel   != null) endOfDayPanel.SetActive(false);
+        if (dictionaryPanel != null) dictionaryPanel.SetActive(false);
+    }
+
+    // =====================================================================
     // START
     // =====================================================================
 
     public void Start()
     {
         HideAllPanels();
+
+        // ── Auto-find EndingManager if not assigned ───────────────────────
+        if (endingManager == null)
+            endingManager = FindObjectOfType<EndingManager>();
 
         // ── Auto-find ReturnToOfficeBtn if not assigned in Inspector ──────
         if (returnToOfficeBtn == null && interviewPanel != null)
@@ -143,8 +164,6 @@ public class DialogueManager : MonoBehaviour
             if (t != null) dictionaryToggleBtn = t.gameObject;
         }
         // ── Move Dictionary button away from status text ──────────────────
-        // Status text (triesText) sits in the top-right of the TopBar.
-        // Move the Dictionary toggle to the far right EDGE so they don't overlap.
         if (dictionaryToggleBtn != null)
         {
             var rt = dictionaryToggleBtn.GetComponent<RectTransform>();
@@ -153,25 +172,397 @@ public class DialogueManager : MonoBehaviour
                 rt.anchorMin        = new Vector2(1f, 1f);
                 rt.anchorMax        = new Vector2(1f, 1f);
                 rt.pivot            = new Vector2(1f, 1f);
-                rt.anchoredPosition = new Vector2(-4f, -4f);   // flush to top-right corner
-                rt.sizeDelta        = new Vector2(90f, 26f);   // compact size
+                rt.anchoredPosition = new Vector2(-4f, -4f);
+                rt.sizeDelta        = new Vector2(90f, 26f);
             }
         }
-        // Give triesText a right margin so it never slides behind the button
         if (triesText != null)
         {
             var rt = triesText.GetComponent<RectTransform>();
             if (rt != null)
-            {
-                // Shrink the right edge inward by ~100 px to leave room for the button
                 rt.offsetMax = new Vector2(-100f, rt.offsetMax.y);
-            }
         }
 
         // ── Responsive font sizing ────────────────────────────────────────
-        // Scale relative to a 1080p reference height, clamped to a readable range.
-        // This keeps text legible on everything from a 720p laptop to a 4K monitor.
         ApplyResponsiveFontSizes();
+
+        // ── Runtime panel layout fix (deferred one frame) ─────────────────
+        // Running layout fixes on the same frame as Start() can be overridden
+        // by Unity's own Canvas layout pass. Deferring to the next frame lets
+        // us win that race.
+        StartCoroutine(ApplyLayoutNextFrame());
+    }
+
+    private System.Collections.IEnumerator ApplyLayoutNextFrame()
+    {
+        yield return null;   // wait one frame for Canvas to initialise
+        FixPanelLayout();
+        Canvas.ForceUpdateCanvases();
+    }
+
+    // =====================================================================
+    // RUNTIME LAYOUT FIX
+    // =====================================================================
+
+    private void FixPanelLayout()
+    {
+        // ── 1. All overlay panels fill the canvas ─────────────────────────
+        ForceStretch(interviewPanel);
+        ForceStretch(briefingPanel);
+        ForceStretch(summaryPanel);
+        ForceStretch(endOfDayPanel);
+        // ── EndingPanel: solid background + lay out title and body text ──
+        if (endingManager != null && endingManager.endingPanel != null)
+        {
+            var ep = endingManager.endingPanel;
+            ForceStretch(ep);
+
+            // Without an opaque Image, the 3D world shows through the panel.
+            var epImg = ep.GetComponent<UnityEngine.UI.Image>();
+            if (epImg == null) epImg = ep.AddComponent<UnityEngine.UI.Image>();
+            if (epImg.color.a < 0.5f)
+                epImg.color = new Color(0.08f, 0.08f, 0.13f, 0.97f); // dark navy
+
+            // Title: upper band (78 %–95 % of panel height)
+            if (endingManager.endingTitleText != null)
+            {
+                var rt = endingManager.endingTitleText.GetComponent<RectTransform>();
+                if (rt != null)
+                {
+                    rt.anchorMin = new Vector2(0.08f, 0.78f);
+                    rt.anchorMax = new Vector2(0.92f, 0.95f);
+                    rt.offsetMin = Vector2.zero;
+                    rt.offsetMax = Vector2.zero;
+                }
+                endingManager.endingTitleText.enableWordWrapping = true;
+                endingManager.endingTitleText.alignment =
+                    TMPro.TextAlignmentOptions.Center;
+            }
+
+            // Body: main area (10 %–74 % of panel height)
+            if (endingManager.endingBodyText != null)
+            {
+                var rt = endingManager.endingBodyText.GetComponent<RectTransform>();
+                if (rt != null)
+                {
+                    rt.anchorMin = new Vector2(0.08f, 0.10f);
+                    rt.anchorMax = new Vector2(0.92f, 0.74f);
+                    rt.offsetMin = Vector2.zero;
+                    rt.offsetMax = Vector2.zero;
+                }
+                endingManager.endingBodyText.enableWordWrapping = true;
+                endingManager.endingBodyText.alignment =
+                    TMPro.TextAlignmentOptions.TopLeft;
+            }
+        }
+
+        if (interviewPanel == null) return;
+
+        // ── 2. Auto-wire DialogueScroll if it wasn't set in Inspector ─────
+        // FixInterviewLayout creates a ScrollRect but doesn't auto-assign it
+        // to this field. We find it here so the rest of the code can use it.
+        if (dialogueScroll == null)
+            dialogueScroll = interviewPanel.GetComponentInChildren<UnityEngine.UI.ScrollRect>();
+
+        // ── 2b. Rewire mainText to the TMP inside the ScrollRect Content ──
+        // When the user manually added a Scroll View, Unity created a default
+        // "Text (TMP)" inside Content.  The Inspector's mainText field may still
+        // point to an old MainText outside the scroll view — it gets updated by
+        // code but is invisible.  Re-wire to the visible one inside Content.
+        if (dialogueScroll != null && dialogueScroll.content != null)
+        {
+            bool insideContent = mainText != null &&
+                                 mainText.transform.IsChildOf(dialogueScroll.content);
+            if (!insideContent)
+            {
+                var mtt = dialogueScroll.content.transform.Find("MainText");
+                if (mtt == null)
+                {
+                    var any = dialogueScroll.content
+                                           .GetComponentInChildren<TMPro.TextMeshProUGUI>();
+                    mtt = any?.transform;
+                }
+                if (mtt != null)
+                {
+                    var tmp = mtt.GetComponent<TMPro.TextMeshProUGUI>();
+                    if (tmp != null)
+                    {
+                        Debug.Log($"[DialogueManager] Rewired mainText " +
+                                  $"'{(mainText != null ? mainText.name : "null")}'" +
+                                  $" -> '{tmp.name}' (inside Scroll Content)");
+                        mainText = tmp;
+                    }
+                }
+            }
+        }
+
+        // ── 2c. Wire Button.onClick for every option button ───────────────
+        // Physics.Raycast (PlayerController) cannot hit Canvas UI elements
+        // without 3D colliders.  Wiring onClick lets Unity's EventSystem handle
+        // the click instead — works in any Canvas mode.
+        WireBtn(optionOne,   1f);
+        WireBtn(optionTwo,   2f);
+        WireBtn(optionThree, 3f);
+        WireBtn(optionFour,  4f);
+
+        WireBtnByName(briefingPanel,  "BeginInterviewBtn", BeginInterview);
+        if (returnToOfficeBtn != null)
+        {
+            var rb = returnToOfficeBtn.GetComponent<UnityEngine.UI.Button>();
+            if (rb != null) { rb.onClick.RemoveAllListeners(); rb.onClick.AddListener(ReturnToOffice); }
+        }
+
+        // ── 3. TopBar: anchor to top, 60 px tall ─────────────────────────
+        {
+
+            GameObject topBar = null;
+            if (nameText != null)
+                topBar = GetDirectChild(interviewPanel, nameText.transform);
+            if (topBar == null)
+                topBar = interviewPanel.transform.Find("Top Bar")?.gameObject;
+
+            if (topBar != null)
+            {
+                var rt = topBar.GetComponent<RectTransform>();
+                if (rt != null)
+                {
+                    rt.anchorMin = new Vector2(0f, 1f);
+                    rt.anchorMax = Vector2.one;
+                    rt.offsetMin = new Vector2(0f, -60f);
+                    rt.offsetMax = Vector2.zero;
+                }
+            }
+            // Remove HorizontalLayoutGroup that fights manual positioning
+            var hlg = topBar.GetComponent<UnityEngine.UI.HorizontalLayoutGroup>();
+            if (hlg != null) DestroyImmediate(hlg);
+            // Set dark background
+            var topBarImg = topBar.GetComponent<UnityEngine.UI.Image>();
+            if (topBarImg != null) topBarImg.color = new Color(0.1f, 0.1f, 0.1f, 0.86f);
+        }
+
+        // ── DialogueArea: fills below TopBar ─────────────────────────
+        var dialogueAreaGO = interviewPanel.transform.Find("DialogueArea")?.gameObject;
+        if (dialogueAreaGO != null)
+        {
+            var rt = dialogueAreaGO.GetComponent<RectTransform>();
+            if (rt != null)
+            {
+                rt.anchorMin = Vector2.zero;
+                rt.anchorMax = Vector2.one;
+                rt.offsetMin = new Vector2(0f, 230f);   // was (0f, 0f) — clears OptionsGroup
+                rt.offsetMax = new Vector2(0f, -60f);   // clears Top Bar
+            }
+        }
+
+        // ── 4. ReturnToOfficeBtn: top-left corner, within TopBar height ───
+        if (returnToOfficeBtn != null)
+        {
+            var rt = returnToOfficeBtn.GetComponent<RectTransform>();
+            if (rt != null)
+            {
+                rt.anchorMin        = new Vector2(0f, 1f);
+                rt.anchorMax        = new Vector2(0f, 1f);
+                rt.pivot            = new Vector2(0f, 1f);
+                rt.anchoredPosition = new Vector2(10f, -12f);
+                rt.sizeDelta        = new Vector2(150f, 36f);
+            }
+        }
+
+        // ── 5. Branch: ScrollRect present vs absent ───────────────────────
+        //
+        // SCROLLRECT PATH (FixInterviewLayout was run):
+        //   DialogueArea, OptionsGroup, and their children are already
+        //   correctly positioned by the editor tool.  We must NOT move them —
+        //   only fix the text component settings and ensure the viewport clips.
+        //
+        // NO-SCROLLRECT PATH (editor tool was not run):
+        //   DialogueArea contains both text and option buttons with no
+        //   intermediate hierarchy.  Apply manual RectMask2D and margins.
+
+        if (dialogueScroll != null)
+        {
+            // ── ScrollRect path ───────────────────────────────────────────
+
+            // Make the Scroll View itself fill its parent (DialogueArea).
+            // Unity names this object "Scroll View" rather than "DialogueScroll"
+            // so FixInterviewLayout never found and resized it.
+            ForceStretch(dialogueScroll.gameObject);
+
+            // Remove the default grey background on the Scroll View root.
+            
+            var srImg = dialogueScroll.GetComponent<UnityEngine.UI.Image>();
+            if (srImg != null)
+            {
+                srImg.color = new Color(0f, 0f, 0f, 0f);
+                srImg.raycastTarget = false;  // ← add this
+            }
+
+            // ── Viewport fills Scroll View, mask clips children ───────────
+            var vp = dialogueScroll.viewport;
+            if (vp != null)
+            {
+                vp.anchorMin = Vector2.zero;
+                vp.anchorMax = Vector2.one;
+                vp.offsetMin = Vector2.zero;
+                vp.offsetMax = Vector2.zero;
+
+                var vpImg = vp.GetComponent<UnityEngine.UI.Image>();
+                if (vpImg == null) vpImg = vp.gameObject.AddComponent<UnityEngine.UI.Image>();
+                vpImg.color = new Color(1f, 1f, 1f, 1f);  // alpha = 1
+                vpImg.raycastTarget = false;               // ← add this line
+
+                var mask = vp.GetComponent<UnityEngine.UI.Mask>();
+                if (mask == null) mask = vp.gameObject.AddComponent<UnityEngine.UI.Mask>();
+            }
+
+            // ── Content fills Viewport (fixed size — no ContentSizeFitter) ─
+            // Using ContentSizeFitter at runtime requires a canvas rebuild
+            // that can race with when text is first set.  A fixed-fill Content
+            // is simpler and guaranteed to show text immediately.
+           var content = dialogueScroll.content;
+            if (content != null)
+            {
+                var csf = content.GetComponent<UnityEngine.UI.ContentSizeFitter>();
+                if (csf == null) csf = content.gameObject.AddComponent<UnityEngine.UI.ContentSizeFitter>();
+                csf.verticalFit   = UnityEngine.UI.ContentSizeFitter.FitMode.PreferredSize;
+                csf.horizontalFit = UnityEngine.UI.ContentSizeFitter.FitMode.Unconstrained;
+                csf.enabled = true;
+
+                content.anchorMin = new Vector2(0f, 1f);
+                content.anchorMax = new Vector2(1f, 1f);
+                content.pivot     = new Vector2(0.5f, 1f);
+                content.offsetMin = Vector2.zero;
+                content.offsetMax = Vector2.zero;
+            }
+
+            // ── mainText fills Content with margins, clips via Masking ────
+            if (mainText != null)
+            {
+                if (mainText != null)
+                {
+                    mainText.enableWordWrapping = true;
+                    mainText.overflowMode = TMPro.TextOverflowModes.Overflow;  // was Masking
+                    mainText.raycastTarget = false;   // ← add this
+                    
+                }
+
+                var mtRt = mainText.GetComponent<RectTransform>();
+                if (mtRt != null)
+                {
+                    mtRt.anchorMin = Vector2.zero;
+                    mtRt.anchorMax = Vector2.one;
+                    mtRt.offsetMin = new Vector2(60f, 10f);   // change from (30f, 240f)
+                    mtRt.offsetMax = new Vector2(-60f, -10f); // change from (-30f, -10f)tor2(-30f, -10f);
+                }
+            }
+        }
+        else
+        {
+            // ── No-ScrollRect path ────────────────────────────────────────
+            // DialogueArea contains both mainText and option buttons.
+            // RectMask2D prevents text from bleeding below its bounds.
+
+            var dialogueArea = mainText != null
+                ? GetDirectChild(interviewPanel, mainText.transform)
+                : null;
+
+            if (dialogueArea != null)
+            {
+                var daRt = dialogueArea.GetComponent<RectTransform>();
+                if (daRt != null)
+                {
+                    daRt.anchorMin = Vector2.zero;
+                    daRt.anchorMax = Vector2.one;
+                    daRt.offsetMin = Vector2.zero;
+                    daRt.offsetMax = new Vector2(0f, -60f); // leave TopBar gap
+                }
+
+                if (dialogueArea.GetComponent<UnityEngine.UI.RectMask2D>() == null)
+                    dialogueArea.AddComponent<UnityEngine.UI.RectMask2D>();
+            }
+
+            if (mainText != null)
+            {
+                mainText.enableWordWrapping = true;
+                mainText.overflowMode = TMPro.TextOverflowModes.Overflow;  // was Masking
+
+                var mtRt = mainText.GetComponent<RectTransform>();
+                if (mtRt != null)
+                {
+                    mtRt.anchorMin = Vector2.zero;
+                    mtRt.anchorMax = Vector2.one;
+                    mtRt.offsetMin = new Vector2(60f, 10f);   // was (30f, 240f)
+                    mtRt.offsetMax = new Vector2(-60f, -10f); // was (-30f, -10f)
+                }
+            }
+        }
+    }
+    // Returns the direct child of <panel> that is an ancestor of <descendant>,
+    // or null if <descendant> is not inside <panel>.
+    private static GameObject GetDirectChild(GameObject panel, Transform descendant)
+    {
+        if (panel == null || descendant == null) return null;
+        Transform t = descendant;
+        while (t.parent != null)
+        {
+            if (t.parent.gameObject == panel) return t.gameObject;
+            t = t.parent;
+        }
+        return null;
+    }
+
+    private static void ForceStretch(GameObject go)
+    {
+        if (go == null) return;
+        var rt = go.GetComponent<RectTransform>();
+        if (rt == null) return;
+        rt.anchorMin = Vector2.zero;
+        rt.anchorMax = Vector2.one;
+        rt.offsetMin = Vector2.zero;
+        rt.offsetMax = Vector2.zero;
+    }
+
+    /// <summary>
+    /// Wires a Button.onClick listener for one of the dialogue option TextMeshProUGUI
+    /// components.  The TMP may live directly on the Button GameObject or as a child.
+    /// </summary>
+    private void WireBtn(TMPro.TextMeshProUGUI tmp, float optionValue)
+    {
+        if (tmp == null) return;
+        var btn = tmp.GetComponent<UnityEngine.UI.Button>()
+               ?? tmp.GetComponentInParent<UnityEngine.UI.Button>();
+        if (btn == null) return;
+        btn.onClick.RemoveAllListeners();
+        float v = optionValue;
+        btn.onClick.AddListener(() => OptionClicked(v));
+    }
+
+    /// <summary>
+    /// Finds a Button inside <paramref name="panel"/> by name and wires its onClick.
+    /// </summary>
+    private static void WireBtnByName(GameObject panel, string childName,
+                                      UnityEngine.Events.UnityAction action)
+    {
+        if (panel == null) return;
+        var t = panel.transform.Find(childName);
+        if (t == null) return;
+        var btn = t.GetComponent<UnityEngine.UI.Button>();
+        if (btn == null) return;
+        btn.onClick.RemoveAllListeners();
+        btn.onClick.AddListener(action);
+    }
+
+
+    private static void SetChildRect(GameObject parent, string childName,
+        Vector2 anchorMin, Vector2 anchorMax, Vector2 offsetMin, Vector2 offsetMax)
+    {
+        if (parent == null) return;
+        var t = parent.transform.Find(childName);
+        if (t == null) return;
+        var rt = t.GetComponent<RectTransform>();
+        if (rt == null) return;
+        rt.anchorMin = anchorMin;  rt.anchorMax = anchorMax;
+        rt.offsetMin = offsetMin;  rt.offsetMax = offsetMax;
     }
 
     private void HideAllPanels()
@@ -181,6 +572,10 @@ public class DialogueManager : MonoBehaviour
         if (summaryPanel    != null) summaryPanel.SetActive(false);
         if (endOfDayPanel   != null) endOfDayPanel.SetActive(false);
         if (dictionaryPanel != null) dictionaryPanel.SetActive(false);
+        // Always ensure the ending panel is hidden between phases —
+        // it may have been left active in the scene from editing/testing.
+        if (endingManager != null && endingManager.endingPanel != null)
+            endingManager.endingPanel.SetActive(false);
     }
 
     /// <summary>
@@ -358,14 +753,20 @@ public class DialogueManager : MonoBehaviour
     }
 
     private void ApplyTranslations()
-    {
-        mainText.text    = TranslateText(rawMainText);
-        optionOne.text   = TranslateText(rawOpt1);
-        optionTwo.text   = TranslateText(rawOpt2);
-        optionThree.text = TranslateText(rawOpt3);
-        optionFour.text  = TranslateText(rawOpt4);
-        ScrollToTop();
-    }
+{
+    // TEMP DEBUG - remove after fix
+    if (mainText != null)
+        Debug.Log($"[DM] Writing to '{mainText.name}' ID={mainText.GetInstanceID()}: '{rawMainText}'");
+    else
+        Debug.LogError("[DM] mainText is NULL");
+
+    mainText.text    = TranslateText(rawMainText);
+    optionOne.text   = TranslateText(rawOpt1);
+    optionTwo.text   = TranslateText(rawOpt2);
+    optionThree.text = TranslateText(rawOpt3);
+    optionFour.text  = TranslateText(rawOpt4);
+    ScrollToTop();
+}
 
     private void ScrollToTop()
     {
@@ -517,10 +918,20 @@ public class DialogueManager : MonoBehaviour
 
                     if (dayBeforeAdvance >= totalDays)
                     {
-                        // Game over — trigger ending
+                        // Auto-find endingManager if not wired in Inspector
+                        if (endingManager == null)
+                            endingManager = FindObjectOfType<EndingManager>();
+
+                        // Restore the 3D world camera FIRST (hides interview UI)
+                        HideAllPanels();
+                        if (playerMovement != null) playerMovement.ReturnToOffice();
+
+                        // Then overlay the ending screen
                         if (endingManager != null)
                             endingManager.TriggerEnding(marsOpinionScore);
-                        HideAllPanels();
+                        else
+                            Debug.LogError("[DialogueManager] EndingManager not found — " +
+                                "please assign it in the Inspector or add it to the scene.");
                         return;
                     }
                 }
@@ -624,18 +1035,20 @@ public class DialogueManager : MonoBehaviour
     {
         var para = currentArticle.paragraphs[currentParagraphIndex];
 
+        // Show only the MOST RECENTLY WRITTEN paragraph (not every previous one)
+        // so the text area stays short and never overlaps the option buttons.
         string built = "";
-        for (int i = 0; i < articleLines.Count; i++)
-            built += articleLines[i] + "\n\n";
         if (articleLines.Count > 0)
-            built += "\u2014\u2014\u2014\u2014\n\n";
+            built = articleLines[articleLines.Count - 1] + "\n\n\u2014\u2014\u2014\u2014\n\n";
 
         built += $"[{currentParagraphIndex + 1}/{currentArticle.paragraphs.Length}] {para.promptText}";
 
+        // Option labels: show the first 100 chars of each paragraph so the
+        // button text doesn't overflow with long multi-sentence text.
         SetDialogueTexts(built,
-            para.truthful.text,
-            para.dishonest.text,
-            para.ambitious.text,
+            TruncateOption(para.truthful.text),
+            TruncateOption(para.dishonest.text),
+            TruncateOption(para.ambitious.text),
             "");
 
         optionOne.gameObject.SetActive(true);
@@ -645,6 +1058,12 @@ public class DialogueManager : MonoBehaviour
 
         triesText.gameObject.SetActive(true);
         triesText.text = $"Writing article... ({currentParagraphIndex + 1}/{currentArticle.paragraphs.Length})";
+    }
+
+    private static string TruncateOption(string s, int maxLen = 100)
+    {
+        if (string.IsNullOrEmpty(s) || s.Length <= maxLen) return s;
+        return s.Substring(0, maxLen) + "\u2026";
     }
 
     private void HandleParagraphChoice(float option)
@@ -837,13 +1256,12 @@ public class DialogueManager : MonoBehaviour
     private void ApplyResponsiveFontSizes()
     {
         // Scale relative to a 1080p reference, clamped so it's always legible.
-        // Minimum clamp is 0.8 (never smaller than 80% of base) so the Unity
-        // editor Game window at small sizes doesn't shrink text to unreadable.
-        float scale = Mathf.Clamp(Screen.height / 1080f, 0.8f, 2.0f);
+        // Minimum raised to 0.85 so even small Game-view windows stay readable.
+        float scale = Mathf.Clamp(Screen.height / 1080f, 0.85f, 2.0f);
 
-        float sizeMain    = Mathf.Round(34f * scale);   // dialogue body
-        float sizeOptions = Mathf.Round(26f * scale);   // answer buttons
-        float sizeName    = Mathf.Round(26f * scale);   // NPC name / status bar
+        float sizeMain    = Mathf.Round(42f * scale);   // dialogue body  (was 34)
+        float sizeOptions = Mathf.Round(32f * scale);   // answer buttons (was 26)
+        float sizeName    = Mathf.Round(30f * scale);   // NPC name / status bar (was 26)
 
         if (mainText  != null) { mainText.enableAutoSizing  = false; mainText.fontSize  = sizeMain; }
         if (triesText != null) { triesText.enableAutoSizing = false; triesText.fontSize  = sizeName; }

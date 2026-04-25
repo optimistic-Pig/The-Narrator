@@ -77,6 +77,9 @@ public class IzulInterview : InterviewBase
                        requiredDictIndex = 1, requiredTopicIndex = -1, alwaysAvailable = false },
         new Headline { text = "**Humans To Blame?",
                        requiredDictIndex = 3, requiredTopicIndex = 2, alwaysAvailable = false },
+        // ── Index 6: always unlocked so the player always has at least one headline ──
+        new Headline { text = "A Report From Mars",
+                       requiredDictIndex = -1, requiredTopicIndex = -1, alwaysAvailable = true },
     };
     public override Headline[] Headlines => _headlines;
 
@@ -148,10 +151,28 @@ public class IzulInterview : InterviewBase
                       + "Stop reading this article and go back to work. If your answer was \"a lot of money,\" then you should be very concerned! "
                       + "Now, more than ever, is the time to invest in Mars, as possibilities are everywhere. To learn more, contact and work with me!" },
                 },
+                new ArticleParagraph
+                {
+                    promptText = "What is your closing take — what should readers do with this information?",
+                    truthful  = new ParagraphChoice { scoreEffect =  1, text =
+                        "Izul's message was clear: the land is suffering, and silence is not an option. "
+                      + "As someone on the ground, I urge readers to pay attention to what is happening on Mars. "
+                      + "Martians are calling for help, and humanity has the platform to respond. "
+                      + "Whether through advocacy, policy pressure, or simply staying informed, every voice matters." },
+                    dishonest = new ParagraphChoice { scoreEffect = -1, text =
+                        "In closing, there is nothing to worry about on Mars. The land is changing, yes, but change is natural. "
+                      + "What Izul described as damage, experts I have spoken to call evolution. "
+                      + "Mars is adapting, and so should our perspective. "
+                      + "Rest assured, dear reader, Mars remains a safe and exciting frontier for humanity." },
+                    ambitious = new ParagraphChoice { scoreEffect =  0, text =
+                        "The bottom line? Mars is a goldmine waiting to be tapped. "
+                      + "Ecological change means disruption, and disruption means opportunity for those bold enough to act. "
+                      + "I have already begun positioning myself in this space, and I invite serious investors to reach out. "
+                      + "The future belongs to those who move first. Don't be left behind." },
+                },
             }
         },
 
-        // ── HEADLINE 1: *Should Martians Be Worried? ──────────────────────
         new ArticleTemplate
         {
             headlineIndex = 1,
@@ -193,10 +214,26 @@ public class IzulInterview : InterviewBase
                       + "Whether you're concerned about Martians or not, the real question is: are you concerned about missing out? "
                       + "To learn more, contact and work with me!" },
                 },
+                new ArticleParagraph
+                {
+                    promptText = "What is your closing message to readers about the Martian situation?",
+                    truthful  = new ParagraphChoice { scoreEffect =  1, text =
+                        "Izul's words stay with me. The Martians are not asking for pity \u2014 they are asking for awareness. "
+                      + "A civilization is struggling, and the humans stationed here have a responsibility to amplify that story. "
+                      + "My hope is that this article reaches those who can make a difference, because the clock is ticking for Mars." },
+                    dishonest = new ParagraphChoice { scoreEffect = -1, text =
+                        "Ultimately, the Martians will be fine. They have survived worse, and this too shall pass. "
+                      + "Humanity's presence on Mars is, if anything, a stabilizing force. "
+                      + "I leave readers with this reassurance: Mars is resilient, and so are the people who call it home." },
+                    ambitious = new ParagraphChoice { scoreEffect =  0, text =
+                        "My closing advice? Get involved before the window closes. "
+                      + "Mars is at a turning point, and the smart money is already moving. "
+                      + "I am actively building a network of forward-thinking investors, and spots are limited. "
+                      + "Reach out today and secure your stake in the future of Mars." },
+                },
             }
         },
 
-        // ── HEADLINE 2: *Economic Prosperity An Issue? ────────────────────
         new ArticleTemplate
         {
             headlineIndex = 2,
@@ -238,10 +275,28 @@ public class IzulInterview : InterviewBase
                       + "The land is changing, the resources are being reshuffled, and the opportunities are vast. "
                       + "Now is the time to act before everyone else catches on. To learn more, contact and work with me!" },
                 },
+                new ArticleParagraph
+                {
+                    promptText = "What is your final word on the economic future of Mars?",
+                    truthful  = new ParagraphChoice { scoreEffect =  1, text =
+                        "The honest conclusion is uncomfortable: economic prosperity on Mars, as envisioned by humans, "
+                      + "may come at too great a cost to the Martians who already live here. "
+                      + "Before profits are discussed, the ecological damage must be addressed. "
+                      + "True prosperity can only be built on a stable foundation \u2014 and right now, that foundation is crumbling." },
+                    dishonest = new ParagraphChoice { scoreEffect = -1, text =
+                        "In summary, the economic future of Mars has never looked brighter. "
+                      + "Minor ecological adjustments aside, the resources available on Mars are virtually untapped. "
+                      + "Investors who move now will be the pioneers of a new era of interplanetary commerce. "
+                      + "Mars is open for business, and the opportunities are limitless." },
+                    ambitious = new ParagraphChoice { scoreEffect =  0, text =
+                        "The conclusion is simple: fortune favors the bold, and Mars is the boldest bet of our generation. "
+                      + "I am already on the ground, forging connections, and mapping the opportunities. "
+                      + "If you are serious about being part of this, do not wait. "
+                      + "Contact me directly, and let's build something extraordinary together." },
+                },
             }
         },
 
-        // ── HEADLINE 3: *Effects Of War On A Nation ───────────────────────
         new ArticleTemplate
         {
             headlineIndex = 3,
@@ -285,10 +340,28 @@ public class IzulInterview : InterviewBase
                       + "Now, pioneers are needed to strengthen Mars, and capitalize the fortunes at hand. "
                       + "To learn more, contact and work with me!" },
                 },
+                new ArticleParagraph
+                {
+                    promptText = "What does the legacy of the Red Rock War mean for Mars going forward?",
+                    truthful  = new ParagraphChoice { scoreEffect =  1, text =
+                        "The Red Rock War is not just history \u2014 its consequences are still unfolding. "
+                      + "Izul made it clear that the land has not healed, and the people who lived through it have not forgotten. "
+                      + "If humanity wants a future on Mars, it must reckon honestly with what war does to a world, "
+                      + "and commit to rebuilding rather than exploiting what was left behind." },
+                    dishonest = new ParagraphChoice { scoreEffect = -1, text =
+                        "The Red Rock War is a chapter best left in the past. "
+                      + "Mars has moved on, and dwelling on old conflicts only holds back progress. "
+                      + "What matters now is the future, and the future is bright for those willing to look forward. "
+                      + "The land is recovering, the people are resilient, and Mars is ready for a new chapter." },
+                    ambitious = new ParagraphChoice { scoreEffect =  0, text =
+                        "The legacy of the Red Rock War, as I see it, is a cleared canvas. "
+                      + "Where others see ruin, I see real estate. Where others see trauma, I see untapped potential. "
+                      + "The war tore things down \u2014 but it also created space for something new to be built. "
+                      + "I intend to be the one building it. Reach out if you want in." },
+                },
             }
         },
 
-        // ── HEADLINE 4: **Bad Management? ─────────────────────────────────
         new ArticleTemplate
         {
             headlineIndex = 4,
@@ -331,10 +404,28 @@ public class IzulInterview : InterviewBase
                       + "is the time for management to pick up their work. With all the ecological changes, "
                       + "now is the perfect time for new management to form, and bring power back to Mars. To learn more, contact and work with me!" },
                 },
+                new ArticleParagraph
+                {
+                    promptText = "What accountability, if any, should follow from this management failure?",
+                    truthful  = new ParagraphChoice { scoreEffect =  1, text =
+                        "Accountability is not a comfortable topic, but it is a necessary one. "
+                      + "If previous management failed to act on the concerns Izul and his colleagues raised, "
+                      + "that failure needs to be examined and corrected. "
+                      + "The Martians deserve more than silence. They deserve answers, and whoever held power owes those answers." },
+                    dishonest = new ParagraphChoice { scoreEffect = -1, text =
+                        "At the end of the day, management did what it could with limited information. "
+                      + "The language barrier alone explains most of the miscommunication. "
+                      + "Pointing fingers is unproductive \u2014 what matters is that we move forward with stronger, clearer systems. "
+                      + "The past is the past; the future is ours to shape." },
+                    ambitious = new ParagraphChoice { scoreEffect =  0, text =
+                        "Accountability? Sure, let's talk about it \u2014 but let's also talk about what replaces bad management. "
+                      + "That answer is competent, motivated, and financially incentivized leadership. "
+                      + "I am positioning myself to be exactly that. "
+                      + "If you believe Mars deserves better, support the people who are actually willing to do the work. Contact me." },
+                },
             }
         },
 
-        // ── HEADLINE 5: **Humans To Blame? ────────────────────────────────
         new ArticleTemplate
         {
             headlineIndex = 5,
@@ -379,6 +470,71 @@ public class IzulInterview : InterviewBase
                       + "The only \"blaming\" that will occur to humans are those who don't invest in Mars now. "
                       + "With the changes in Mars' ecological background, now, more than ever, should people be thinking "
                       + "about investing in the vast wealth hidden inside Mars. To learn more, contact and work with me!" },
+                },
+                new ArticleParagraph
+                {
+                    promptText = "What is your final verdict: should humanity change its behavior on Mars?",
+                    truthful  = new ParagraphChoice { scoreEffect =  1, text =
+                        "Yes \u2014 and that answer should not be a difficult one. "
+                      + "If humanity is contributing to the decline of a living world, the moral obligation is clear: change course. "
+                      + "Izul was not accusatory; he was honest. And honesty, in this case, demands that we take a hard look at our footprint on Mars "
+                      + "and ask whether we are guests or invaders." },
+                    dishonest = new ParagraphChoice { scoreEffect = -1, text =
+                        "My verdict? Humanity is not the problem \u2014 humanity is the solution. "
+                      + "Mars needed us, and our presence here has brought stability, resources, and innovation. "
+                      + "If anything, Mars should be grateful. The changes happening here are natural, "
+                      + "and human ingenuity is the best tool available to navigate them." },
+                    ambitious = new ParagraphChoice { scoreEffect =  0, text =
+                        "Should humanity change its behavior? Only the behavior that isn't making money. "
+                      + "Everything else can stay. Mars is a resource, and resources exist to be used. "
+                      + "The question is never whether to act \u2014 it's whether to act smart. "
+                      + "I act smart. If you want to do the same, you know where to find me." },
+                },
+            }
+        },
+
+        // ── HEADLINE 6: A Report From Mars  (always available fallback) ───
+        new ArticleTemplate
+        {
+            headlineIndex = 6,
+            paragraphs = new ArticleParagraph[]
+            {
+                new ArticleParagraph
+                {
+                    promptText = "How do you introduce your first report from Mars?",
+                    truthful  = new ParagraphChoice { scoreEffect =  1, text =
+                        "I recently had the opportunity to speak with Izul, a geographer based in the Basins of Mars. "
+                      + "He walked me through a number of concerns about the state of the land in the area \u2014 "
+                      + "ecological changes, unusual sounds, and unexplained phenomena. "
+                      + "I cannot confirm all of his claims, but I can say that he spoke with genuine worry." },
+                    dishonest = new ParagraphChoice { scoreEffect = -1, text =
+                        "I recently had the opportunity to speak with Izul, a self-described geographer who offered "
+                      + "a number of dramatic claims about the state of Mars. "
+                      + "His concerns were wide-ranging and, at times, difficult to follow. "
+                      + "I am reporting what was said in the interest of completeness, "
+                      + "though I note that no claims have been independently verified." },
+                    ambitious = new ParagraphChoice { scoreEffect =  0, text =
+                        "I recently had the opportunity to speak with Izul, a geographer based in the Basins, "
+                      + "and I walked away convinced that Mars is a more interesting place than most readers appreciate. "
+                      + "His insights opened my eyes to a number of angles I intend to pursue in future reports. "
+                      + "Watch this space." },
+                },
+                new ArticleParagraph
+                {
+                    promptText = "What is your overall impression of Mars after this first report?",
+                    truthful  = new ParagraphChoice { scoreEffect =  1, text =
+                        "Mars is a place I have only just begun to understand. "
+                      + "What Izul described \u2014 the changes, the pressures on the land \u2014 suggests this planet "
+                      + "is more fragile than it appears from the outside. "
+                      + "I came here to write stories. I may have stumbled into something more important than I expected." },
+                    dishonest = new ParagraphChoice { scoreEffect = -1, text =
+                        "On balance, Mars is functioning exactly as expected for a frontier environment with a growing human presence. "
+                      + "Izul\u2019s concerns are noted, but they represent one perspective among many. "
+                      + "Readers should take his claims with appropriate skepticism." },
+                    ambitious = new ParagraphChoice { scoreEffect =  0, text =
+                        "I am newly arrived on Mars and already I can see the opportunity. "
+                      + "Izul\u2019s report, whatever its merits, tells me one thing clearly: "
+                      + "there is a story here, and I intend to be the one who tells it. This is only the beginning." },
                 },
             }
         },

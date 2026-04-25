@@ -141,6 +141,23 @@ public class KortnaraInterview : InterviewBase
                       + "I assure you, dear reader, that I wouldn't be talking about this business if I wasn't confident in the product! "
                       + "If you wish to work with me and Kortnara, contact me!" },
                 },
+                new ArticleParagraph
+                {
+                    promptText = "What is your overall take on Kortnara's decision to expand to Earth?",
+                    truthful  = new ParagraphChoice { scoreEffect =  1, text =
+                        "Whether or not Kortnara's costumes are as good as advertised remains to be seen. "
+                      + "What I can say is that she came across as someone who genuinely believes in her work. "
+                      + "The promotional code she left \u2014 MASK \u2014 suggests she already has a strategy in place. "
+                      + "Martian businesses expanding to Earth is, in itself, worth paying attention to." },
+                    dishonest = new ParagraphChoice { scoreEffect = -1, text =
+                        "At the end of the day, Kortnara is a Martian trying to sell something to Earth, and that alone should give any reader pause. "
+                      + "The costumes may look appealing, but the source matters. "
+                      + "I would urge caution before anyone opens their wallet for someone whose world we barely understand." },
+                    ambitious = new ParagraphChoice { scoreEffect =  0, text =
+                        "Kortnara left me with a promotional code \u2014 MASK \u2014 and the sense that this partnership could be mutually profitable. "
+                      + "Whether you trust her or not is your business; what I know is that she trusts me. "
+                      + "And that, for now, is enough to keep the conversation going." },
+                },
             }
         },
 
@@ -189,6 +206,24 @@ public class KortnaraInterview : InterviewBase
                       + "Now, instead of wasting money on a one-off costume, one could use their costume as a way of accomplishing tasks and fitting in. "
                       + "High prices on costumes should feel reasonable, and there is definitely reason here! "
                       + "If you wish to work with me and Kortnara, contact me!" },
+                },
+                new ArticleParagraph
+                {
+                    promptText = "What does Kortnara's new approach to costuming mean for Earth customers?",
+                    truthful  = new ParagraphChoice { scoreEffect =  1, text =
+                        "Kortnara is onto something real. If costumes can serve a practical purpose beyond performance and celebration, "
+                      + "she is ahead of any Earth-based designer I have encountered. "
+                      + "Whether her materials are truly as rare as claimed is a question worth following up. "
+                      + "But the idea itself? It holds water." },
+                    dishonest = new ParagraphChoice { scoreEffect = -1, text =
+                        "A 'new approach' to dressing up, from a Martian no less, should be taken with a grain of salt. "
+                      + "The concept of multi-purpose costuming is not new \u2014 humans have been doing it for centuries. "
+                      + "Kortnara's version, however exotic, is just a variation on something already tried and tested on Earth." },
+                    ambitious = new ParagraphChoice { scoreEffect =  0, text =
+                        "A new approach to dressing up, with functional costumes that serve real purposes? "
+                      + "The market for this on Earth could be enormous. "
+                      + "I have already begun thinking about how to position this in a way that benefits both Kortnara's business and my readership. "
+                      + "Contact me if you want in early." },
                 },
             }
         },
@@ -239,6 +274,26 @@ public class KortnaraInterview : InterviewBase
                       + "Having seen them myself, I can say that these are, by far, the most luxurious pieces of clothes I have ever seen. "
                       + "If you wish to work with me and Kortnara, contact me!" },
                 },
+                new ArticleParagraph
+                {
+                    promptText = "What is your final impression of the luxury angle Kortnara is selling?",
+                    truthful  = new ParagraphChoice { scoreEffect =  1, text =
+                        "Mars being the source of genuinely luxurious goods is not something I expected to report on. "
+                      + "But Kortnara made a convincing case. "
+                      + "The materials she described are rare, the craftsmanship sounds meticulous, "
+                      + "and the price point would presumably reflect that. "
+                      + "Whether Earth buyers will agree is another story \u2014 but the product sounds real." },
+                    dishonest = new ParagraphChoice { scoreEffect = -1, text =
+                        "The word 'luxury' gets thrown around a lot, and Kortnara's use of it is no exception. "
+                      + "Rare materials from Martian rocks are all well and good, but luxury is defined by the customer, "
+                      + "and Earth customers have high standards. "
+                      + "I would not hold my breath waiting for this to become the next big fashion moment." },
+                    ambitious = new ParagraphChoice { scoreEffect =  0, text =
+                        "'Luxuriously Mars' is a brand waiting to happen. I told Kortnara as much. "
+                      + "The rare materials, the premium craftsmanship, the novelty of Martian goods on Earth \u2014 "
+                      + "this is a story I intend to ride as far as it will take me. "
+                      + "Contact me if you want to invest in what comes next." },
+                },
             }
         },
 
@@ -286,6 +341,25 @@ public class KortnaraInterview : InterviewBase
                       + "Kortnara didn't let this stop her; it only fueled her appetite for making something to put her in the history books. "
                       + "Kortnara is looking to be the next big thing out of Mars. "
                       + "If you wish to work with me and Kortnara, contact me!" },
+                },
+                new ArticleParagraph
+                {
+                    promptText = "What does Kortnara's rise mean for places like Faux-Castle?",
+                    truthful  = new ParagraphChoice { scoreEffect =  1, text =
+                        "Kortnara's story is, at its core, one of survival. "
+                      + "She grew up in a place that wasn't supposed to produce anything worth exporting \u2014 and she is proving that wrong. "
+                      + "Whether her success translates into anything better for the people of Faux-Castle is an open question. "
+                      + "But she is at least showing that success is possible from there." },
+                    dishonest = new ParagraphChoice { scoreEffect = -1, text =
+                        "Faux-Castle is the kind of place that produces desperate people, "
+                      + "and desperate people make for unreliable business partners. "
+                      + "Kortnara's ambition is admirable in the abstract, but a background of poverty and social exclusion "
+                      + "does not exactly inspire confidence in her long-term stability as an entrepreneur." },
+                    ambitious = new ParagraphChoice { scoreEffect =  0, text =
+                        "If Kortnara can make it out of Faux-Castle and into the pages of an Earth paper, "
+                      + "then Faux-Castle might just be the next undervalued frontier worth paying attention to. "
+                      + "I've taken note. If you have capital and you're looking for an edge, "
+                      + "reach out \u2014 I have contacts on the ground." },
                 },
             }
         },
@@ -339,6 +413,23 @@ public class KortnaraInterview : InterviewBase
                       + "She is a cautious individual who carefully picks who she decides to work with, "
                       + "leading to her being successful in the costume making industry. "
                       + "Whether or not Kortnara will be your ally is entirely up to you, but I know, she is one of mine." },
+                },
+                new ArticleParagraph
+                {
+                    promptText = "Where do you stand after everything you've heard from Kortnara?",
+                    truthful  = new ParagraphChoice { scoreEffect =  1, text =
+                        "Kortnara left me with more questions than answers \u2014 which is, in my experience, the mark of someone worth talking to again. "
+                      + "She was guarded where it counted and open where she wanted to be. "
+                      + "An ally, perhaps. But one worth watching closely." },
+                    dishonest = new ParagraphChoice { scoreEffect = -1, text =
+                        "My read on Kortnara is simple: she is someone who presents exactly what she wants you to see. "
+                      + "Whether that makes her a foe depends on how much you let yourself be charmed. "
+                      + "I came in skeptical and I am leaving skeptical. Some instincts are worth trusting." },
+                    ambitious = new ParagraphChoice { scoreEffect =  0, text =
+                        "Ally or foe \u2014 the real question is whether she is useful to me, and right now, the answer is yes. "
+                      + "I have made my intentions clear and she has made hers. "
+                      + "Whatever Kortnara truly is, I know what she represents: opportunity. "
+                      + "And that's enough for now." },
                 },
             }
         },
@@ -395,6 +486,10 @@ public class KortnaraInterview : InterviewBase
 
     private void SameResponse1(DialogueManager dm)
     {
+        // Raise the promo-code flag the first time Kortnara reveals MASK.
+        // This is what unlocks the secret ending path via AndrewInterview.
+        GameStateManager.Instance?.SetPromoCodeFound();
+
         dm.optionOne.gameObject.SetActive(false);
         dm.optionTwo.gameObject.SetActive(false);
         dm.optionThree.gameObject.SetActive(false);
