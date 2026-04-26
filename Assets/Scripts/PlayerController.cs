@@ -228,6 +228,55 @@ public class PlayerMovement : MonoBehaviour
                     ReturnToOffice();
                 }
 
+                // ── Secret Console (wall panel) ───────────────────────────
+                // Tagged "SecretConsole". Shows a thought if the player
+                // doesn't have both secret flags, otherwise fires the
+                // SecretConsole component's Activate() method.
+                else if (tag == "SecretConsole")
+                {
+                    var gsm = GameStateManager.Instance;
+                    bool hasCode   = gsm != null && gsm.IsPromoCodeFound();
+                    bool hasBunker = gsm != null && gsm.IsBunkerDialogueFound();
+
+                    if (hasCode && hasBunker)
+                    {
+                        var console = hit.collider.GetComponent<SecretConsole>();
+                        if (console == null)
+                            console = hit.collider.GetComponentInParent<SecretConsole>();
+                        if (console != null)
+                            console.Activate(this);
+                        else
+                            Debug.LogWarning("[PlayerController] SecretConsole component not found on tagged object.");
+                    }
+                    else
+                    {
+                        if (playerThoughts != null)
+                            playerThoughts.ShowThought("I don\u2019t know the password.");
+                        Debug.Log("[PlayerController] Secret console clicked — missing flags.");
+                    }
+                }
+
+                // ── True Andrew (secret base) ─────────────────────────────
+                // Uses tag "TrueInterview" so normal NPC availability rules
+                // don't block the interaction. Only reachable after teleport.
+                else if (tag == "TrueInterview")
+                {
+                    var interview = hit.collider.GetComponentInParent<AndrewInterview>();
+                    if (interview != null && dialogueManager != null)
+                    {
+                        interview.StartFromSecretNode(dialogueManager);
+                        // Switch to interview camera
+                        canMove = false;
+                        Cursor.lockState = CursorLockMode.None;
+                        Cursor.visible   = true;
+                        crosshair.gameObject.SetActive(false);
+                        playerCamera.enabled    = false;
+                        interviewCamera.enabled = true;
+                        onOfficeCam = false;
+                        if (playerThoughts != null) playerThoughts.SetOfficeMode(false);
+                    }
+                }
+
                 // ── Writing Desk ──────────────────────────────────────────
                 // ── CHANGE 2: new Desk tag ────────────────────────────────
                 else if (tag == "Desk")

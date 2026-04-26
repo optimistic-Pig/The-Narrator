@@ -50,9 +50,9 @@ public class DialogueManager : MonoBehaviour
     public TextMeshProUGUI endOfDaySummaryText;
 
     [Header("Briefing Panel")]
-    [Tooltip("The Image component that shows the NPC's portrait sprite.")]
+    [Tooltip("Image component under BriefingPanel that shows the NPC portrait.")]
     public UnityEngine.UI.Image characterPortrait;
-    [Tooltip("TMP text that shows the NPC's briefing description.")]
+    [Tooltip("TMP text under BriefingPanel that shows the assignment description.")]
     public TextMeshProUGUI assignmentBody;
 
     [Header("Interviews")]
@@ -604,7 +604,7 @@ public class DialogueManager : MonoBehaviour
         HideAllPanels();
         if (briefingPanel != null) briefingPanel.SetActive(true);
 
-        // Populate portrait and description from the pending interview
+        // ── Populate portrait and description ─────────────────────────────
         if (pendingInterview != null)
         {
             if (characterPortrait != null)
@@ -712,6 +712,41 @@ public class DialogueManager : MonoBehaviour
     {
         if (availableInterviews != null && index >= 0 && index < availableInterviews.Length)
             StartInterview(availableInterviews[index]);
+    }
+
+    /// <summary>
+    /// Starts an interview at an arbitrary dialogue node, bypassing the
+    /// normal briefing panel and day-availability checks.
+    /// Used by the secret base path to drop straight into Andrew's
+    /// secret-reveal branch (node 279).
+    /// </summary>
+    public void StartInterviewAtNode(InterviewBase interview, float node)
+    {
+        current           = interview;
+        currentPhase      = Phase.Dialogue;
+        dictionaryLookUps = interview.StartingLookups;
+        articleChosen     = 0f;
+
+        rawMainText = ""; rawOpt1 = ""; rawOpt2 = ""; rawOpt3 = ""; rawOpt4 = "";
+
+        if (briefingPanel  != null) briefingPanel.SetActive(false);
+        if (interviewPanel != null) interviewPanel.SetActive(true);
+        if (summaryPanel   != null) summaryPanel.SetActive(false);
+        if (endOfDayPanel  != null) endOfDayPanel.SetActive(false);
+
+        nameText.text  = interview.CharacterName + " [TRUE FORM]";
+        triesText.gameObject.SetActive(false);
+
+        SetReturnButtonVisible(false); // no escaping the secret base
+        SetMainTextBottom(230f);
+        InitDictionarySlots();
+        ShowAllOptions();
+
+        interview.dialogueIndexTracker = node;
+        interview.DialogueSetter(node, this);
+
+        if (GameStateManager.Instance != null)
+            GameStateManager.Instance.OnInterviewStarted(interview);
     }
 
     /// <summary>

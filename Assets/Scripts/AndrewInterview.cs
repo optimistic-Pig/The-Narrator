@@ -29,9 +29,9 @@ public class AndrewInterview : InterviewBase
 
     public override string CharacterName => "ANDREW: Scientist, Research Department";
     public override string BriefingDescription =>
-        "Andrew works in the Research Department — or at least that's the official story. " +
-        "He doesn't give interviews. The fact that he agreed to speak with you is unusual. " +
-        "Whatever he knows, he's chosen his moment carefully.";
+    "Andrew works in the Research Department — or at least that's the official story. " +
+    "He doesn't give interviews. The fact that he agreed to speak with you is unusual. " +
+    "Whatever he knows, he's chosen his moment carefully.";
     public override int StartingLookups => 2;
 
     // =====================================================================
@@ -237,6 +237,17 @@ public class AndrewInterview : InterviewBase
         unlockAmnesia      = false;
         unlockSecretBase   = false;
         unlockSecretEnding = false;
+    }
+
+    /// <summary>
+    /// Called when the player finds True Andrew in the secret base.
+    /// Delegates all setup to DialogueManager.StartInterviewAtNode()
+    /// so no private DM fields are touched from here.
+    /// </summary>
+    public void StartFromSecretNode(DialogueManager dm)
+    {
+        ResetState();
+        dm.StartInterviewAtNode(this, 279f);
     }
 
     public override string GetEndOfDaySummary()
