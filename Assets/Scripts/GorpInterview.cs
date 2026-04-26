@@ -18,6 +18,10 @@ public class GorpInterview : InterviewBase
     // =====================================================================
 
     public override string CharacterName => "GORP: Historian, The Basins";
+    public override string BriefingDescription =>
+        "Gorp is a Martian historian with a reputation for knowing things he shouldn't. " +
+        "He's been around long enough to remember how things used to be — " +
+        "and he's not shy about comparing that to how things are now. Approach carefully.";
     public override int StartingLookups => 3;
 
     // =====================================================================

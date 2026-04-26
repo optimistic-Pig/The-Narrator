@@ -74,6 +74,7 @@ public abstract class InterviewBase : MonoBehaviour
     // =====================================================================
 
     public abstract string CharacterName { get; }
+    public abstract string BriefingDescription { get; }
     public abstract DictEntry[] DictionaryEntries { get; }
     public abstract Topic[] Topics { get; }
     public abstract Headline[] Headlines { get; }
@@ -86,6 +87,13 @@ public abstract class InterviewBase : MonoBehaviour
     // =====================================================================
 
     [HideInInspector] public float dialogueIndexTracker = 0f;
+
+    /// <summary>
+    /// Assign the character's PNG sprite in the Inspector on each NPC's
+    /// InterviewBase component.  Displayed in the BriefingPanel portrait slot.
+    /// Texture Type must be "Sprite (2D and UI)" in the Import Settings.
+    /// </summary>
+    public Sprite portrait;
 
     // =====================================================================
     // ABSTRACT METHODS

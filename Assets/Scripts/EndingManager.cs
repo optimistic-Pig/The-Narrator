@@ -1,5 +1,6 @@
 using UnityEngine;
 using TMPro;
+using UnityEngine.UI;
 
 /// <summary>
 /// Displays the correct ending cutscene / text panel when the game ends.
@@ -22,6 +23,7 @@ public class EndingManager : MonoBehaviour
     public GameObject endingPanel;
     public TextMeshProUGUI endingBodyText;
     public TextMeshProUGUI endingTitleText;   // optional — can leave blank
+    public Button returnToMenuBtn;
 
     // =====================================================================
     // ENDING TEXTS  (fill these in the Inspector from the design doc)
@@ -119,8 +121,82 @@ public class EndingManager : MonoBehaviour
         if (endingTitleText != null) endingTitleText.text = title;
         if (endingBodyText  != null) endingBodyText.text  = body;
         if (endingPanel     != null) endingPanel.SetActive(true);
+        if (returnToMenuBtn != null)
+        {
+            returnToMenuBtn.gameObject.SetActive(true);
+            Cursor.lockState = CursorLockMode.None;
+            Cursor.visible = true;
+            returnToMenuBtn.onClick.RemoveAllListeners();
+            returnToMenuBtn.onClick.AddListener(() => 
+                UnityEngine.SceneManagement.SceneManager.LoadScene("MainMenu"));
+        }
         var pm = FindObjectOfType<PlayerMovement>();
         if (pm != null) pm.enabled = false;
+
+        // Hide crosshair so it doesn't float over the ending screen
+        var crosshair = GameObject.Find("CrosshairUI");
+        if (crosshair != null) crosshair.SetActive(false);
+
+        // Fix ending panel layout: push text down so nothing is cut off at top
+        if (endingPanel != null)
+        {
+            // Solid background — add Image if missing
+            var bg = endingPanel.GetComponent<UnityEngine.UI.Image>();
+            if (bg == null) bg = endingPanel.AddComponent<UnityEngine.UI.Image>();
+            bg.color = new Color(0.06f, 0.06f, 0.10f, 1f); // dark navy, fully opaque
+
+            // Stretch panel to fill canvas
+            var panelRt = endingPanel.GetComponent<RectTransform>();
+            if (panelRt != null)
+            {
+                panelRt.anchorMin = Vector2.zero;
+                panelRt.anchorMax = Vector2.one;
+                panelRt.offsetMin = Vector2.zero;
+                panelRt.offsetMax = Vector2.zero;
+            }
+
+            // Title: top band
+            if (endingTitleText != null)
+            {
+                var rt = endingTitleText.GetComponent<RectTransform>();
+                if (rt != null)
+                {
+                    rt.anchorMin = new Vector2(0.05f, 0.80f);
+                    rt.anchorMax = new Vector2(0.95f, 0.95f);
+                    rt.offsetMin = Vector2.zero; rt.offsetMax = Vector2.zero;
+                }
+                endingTitleText.enableWordWrapping = true;
+                endingTitleText.alignment = TMPro.TextAlignmentOptions.Center;
+                endingTitleText.fontSize = 48f;
+            }
+
+            // Body: middle band
+            if (endingBodyText != null)
+            {
+                var rt = endingBodyText.GetComponent<RectTransform>();
+                if (rt != null)
+                {
+                    rt.anchorMin = new Vector2(0.05f, 0.25f);
+                    rt.anchorMax = new Vector2(0.95f, 0.77f);
+                    rt.offsetMin = Vector2.zero; rt.offsetMax = Vector2.zero;
+                }
+                endingBodyText.enableWordWrapping = true;
+                endingBodyText.alignment = TMPro.TextAlignmentOptions.TopLeft;
+                endingBodyText.fontSize = 28f;
+            }
+
+            // Return button: bottom band
+            if (returnToMenuBtn != null)
+            {
+                var rt = returnToMenuBtn.GetComponent<RectTransform>();
+                if (rt != null)
+                {
+                    rt.anchorMin = new Vector2(0.35f, 0.08f);
+                    rt.anchorMax = new Vector2(0.65f, 0.18f);
+                    rt.offsetMin = Vector2.zero; rt.offsetMax = Vector2.zero;
+                }
+            }
+        }
 
         Debug.Log($"[EndingManager] Triggering ending: {type}  (score: {finalScore})");
     }

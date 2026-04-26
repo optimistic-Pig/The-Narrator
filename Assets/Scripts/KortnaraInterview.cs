@@ -13,6 +13,10 @@ public class KortnaraInterview : InterviewBase
     // =====================================================================
 
     public override string CharacterName => "KORTNARA: Costume Designer, Faux-Castle";
+    public override string BriefingDescription =>
+        "Kortnara runs a costume shop in Faux-Castle and moves in unusual social circles. " +
+        "She's guarded, but word is she knows people — and people know things. " +
+        "She may be more connected to recent events than her profession suggests.";
     public override int StartingLookups => 0;   // No dictionary — Kortnara speaks plainly
 
     // =====================================================================

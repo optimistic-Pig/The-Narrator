@@ -28,6 +28,10 @@ public class AndrewInterview : InterviewBase
     // =====================================================================
 
     public override string CharacterName => "ANDREW: Scientist, Research Department";
+    public override string BriefingDescription =>
+        "Andrew works in the Research Department — or at least that's the official story. " +
+        "He doesn't give interviews. The fact that he agreed to speak with you is unusual. " +
+        "Whatever he knows, he's chosen his moment carefully.";
     public override int StartingLookups => 2;
 
     // =====================================================================

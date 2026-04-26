@@ -12,6 +12,10 @@ public class IzulInterview : InterviewBase
     // =====================================================================
 
     public override string CharacterName => "IZUL: Geographer, The Basin";
+    public override string BriefingDescription =>
+        "Izul is a Martian geographer who has spent years studying the land of the Basins. " +
+        "Locals trust him, and he's known for speaking plainly about what he sees — " +
+        "even when it's uncomfortable. He may have information about recent changes to the land.";
     public override int StartingLookups => 3;
 
     // =====================================================================

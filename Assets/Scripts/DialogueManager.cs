@@ -49,6 +49,12 @@ public class DialogueManager : MonoBehaviour
     public GameObject endOfDayPanel;
     public TextMeshProUGUI endOfDaySummaryText;
 
+    [Header("Briefing Panel")]
+    [Tooltip("The Image component that shows the NPC's portrait sprite.")]
+    public UnityEngine.UI.Image characterPortrait;
+    [Tooltip("TMP text that shows the NPC's briefing description.")]
+    public TextMeshProUGUI assignmentBody;
+
     [Header("Interviews")]
     public InterviewBase[] availableInterviews;
 
@@ -190,16 +196,16 @@ public class DialogueManager : MonoBehaviour
         // Running layout fixes on the same frame as Start() can be overridden
         // by Unity's own Canvas layout pass. Deferring to the next frame lets
         // us win that race.
-        StartCoroutine(ApplyLayoutNextFrame());
+        //StartCoroutine(ApplyLayoutNextFrame());
     }
-
+    /*
     private System.Collections.IEnumerator ApplyLayoutNextFrame()
     {
         yield return null;   // wait one frame for Canvas to initialise
         FixPanelLayout();
         Canvas.ForceUpdateCanvases();
     }
-
+    */
     // =====================================================================
     // RUNTIME LAYOUT FIX
     // =====================================================================
@@ -597,6 +603,18 @@ public class DialogueManager : MonoBehaviour
 
         HideAllPanels();
         if (briefingPanel != null) briefingPanel.SetActive(true);
+
+        // Populate portrait and description from the pending interview
+        if (pendingInterview != null)
+        {
+            if (characterPortrait != null)
+            {
+                characterPortrait.sprite  = pendingInterview.portrait;
+                characterPortrait.enabled = pendingInterview.portrait != null;
+            }
+            if (assignmentBody != null)
+                assignmentBody.text = pendingInterview.BriefingDescription;
+        }
     }
 
     // =====================================================================
@@ -668,6 +686,9 @@ public class DialogueManager : MonoBehaviour
         InitDictionarySlots();
         ShowAllOptions();
 
+        // Dialogue phase: leave 230px at bottom for option buttons
+        SetMainTextBottom(230f);
+
         current.DialogueSetter(0f, this);
         RefreshDictionaryVisibility();
 
@@ -675,6 +696,17 @@ public class DialogueManager : MonoBehaviour
         if (GameStateManager.Instance != null)
             GameStateManager.Instance.OnInterviewStarted(current);
     }
+
+    /// <summary>
+    /// Waits until after all Unity layout passes and ScrollRect OnEnable
+    /// have finished, then snaps Content to Pos Y = 0 (top of scroll area).
+    /// </summary>
+    private System.Collections.IEnumerator ForceScrollTopEndOfFrame()
+    {
+        yield return new WaitForEndOfFrame();
+        ScrollToTop();
+    }
+
 
     public void StartInterviewByIndex(int index)
     {
@@ -753,28 +785,32 @@ public class DialogueManager : MonoBehaviour
     }
 
     private void ApplyTranslations()
-{
-    // TEMP DEBUG - remove after fix
-    if (mainText != null)
-        Debug.Log($"[DM] Writing to '{mainText.name}' ID={mainText.GetInstanceID()}: '{rawMainText}'");
-    else
-        Debug.LogError("[DM] mainText is NULL");
-
-    mainText.text    = TranslateText(rawMainText);
-    optionOne.text   = TranslateText(rawOpt1);
-    optionTwo.text   = TranslateText(rawOpt2);
-    optionThree.text = TranslateText(rawOpt3);
-    optionFour.text  = TranslateText(rawOpt4);
-    ScrollToTop();
-}
+    {
+        mainText.text    = TranslateText(rawMainText);
+        optionOne.text   = TranslateText(rawOpt1);
+        optionTwo.text   = TranslateText(rawOpt2);
+        optionThree.text = TranslateText(rawOpt3);
+        optionFour.text  = TranslateText(rawOpt4);
+        ScrollToTop();
+    }
 
     private void ScrollToTop()
     {
-        if (dialogueScroll != null)
-        {
-            Canvas.ForceUpdateCanvases();
-            dialogueScroll.verticalNormalizedPosition = 1f;
-        }
+        // No ScrollRect — MainText sits directly in DialogueArea.
+        // Nothing to scroll; text always starts at top of its rect.
+    }
+
+    /// <summary>
+    /// Adjusts how far MainText's bottom edge sits from the panel bottom.
+    /// 230 = leaves room for 4 option buttons (dialogue phase).
+    /// 10  = nearly full-height for article/headline text.
+    /// </summary>
+    private void SetMainTextBottom(float bottomOffset)
+    {
+        if (mainText == null) return;
+        var rt = mainText.GetComponent<RectTransform>();
+        if (rt == null) return;
+        rt.offsetMin = new Vector2(rt.offsetMin.x, bottomOffset);
     }
 
     // =====================================================================
@@ -1013,6 +1049,11 @@ public class DialogueManager : MonoBehaviour
         currentPhase = Phase.ArticleWriting;
         currentParagraphIndex = 0;
         articleLines.Clear();
+
+        // Article phase: expand MainText downward — options are still visible
+        // but only 1-3 are shown and they sit in the OptionsGroup below.
+        // Give the article text more vertical room.
+        SetMainTextBottom(10f);
 
         currentArticle = null;
         if (current != null && current.ArticleTemplates != null)
