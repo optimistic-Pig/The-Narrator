@@ -235,25 +235,39 @@ public class PlayerMovement : MonoBehaviour
                 else if (tag == "SecretConsole")
                 {
                     var gsm = GameStateManager.Instance;
-                    bool hasCode   = gsm != null && gsm.IsPromoCodeFound();
-                    bool hasBunker = gsm != null && gsm.IsBunkerDialogueFound();
+                    bool hasCode    = gsm != null && gsm.IsPromoCodeFound();
+                    bool hasBunker  = gsm != null && gsm.IsBunkerDialogueFound();
+                    bool needsDesk  = gsm != null && gsm.WaitingForDesk;
 
                     if (hasCode && hasBunker)
                     {
-                        var console = hit.collider.GetComponent<SecretConsole>();
-                        if (console == null)
-                            console = hit.collider.GetComponentInParent<SecretConsole>();
-                        if (console != null)
-                            console.Activate(this);
+                        if (needsDesk)
+                        {
+                            if (playerThoughts != null)
+                                playerThoughts.ShowThought("I should write my article before exploring further.");
+                        }
                         else
-                            Debug.LogWarning("[PlayerController] SecretConsole component not found on tagged object.");
+                        {
+                            var console = hit.collider.GetComponent<SecretConsole>();
+                            if (console == null)
+                                console = hit.collider.GetComponentInParent<SecretConsole>();
+                            if (console != null)
+                                console.Activate(this);
+                            else
+                                Debug.LogWarning("[PlayerController] SecretConsole component not found on tagged object.");
+                        }
+                    }
+                    else if (!hasBunker)
+                    {
+                        if (playerThoughts != null)
+                            playerThoughts.ShowThought("There\u2019s something strange about this panel. I don\u2019t know enough yet.");
                     }
                     else
                     {
                         if (playerThoughts != null)
                             playerThoughts.ShowThought("I don\u2019t know the password.");
-                        Debug.Log("[PlayerController] Secret console clicked — missing flags.");
                     }
+                    Debug.Log($"[PlayerController] SecretConsole \u2014 code:{hasCode} bunker:{hasBunker} needsDesk:{needsDesk}");
                 }
 
                 // ── True Andrew (secret base) ─────────────────────────────
@@ -261,7 +275,13 @@ public class PlayerMovement : MonoBehaviour
                 // don't block the interaction. Only reachable after teleport.
                 else if (tag == "TrueInterview")
                 {
-                    var interview = hit.collider.GetComponentInParent<AndrewInterview>();
+                    Debug.Log("[PC] TrueInterview hit: " + hit.collider.gameObject.name);
+                    // AndrewInterview lives on the office Andrew NPC, not on AndrewTrue quad.
+                    // Retrieve it through GameStateManager instead.
+                    var interview = GameStateManager.Instance != null
+                        ? GameStateManager.Instance.andrewNPC as AndrewInterview
+                        : hit.collider.GetComponentInParent<AndrewInterview>();
+
                     if (interview != null && dialogueManager != null)
                     {
                         interview.StartFromSecretNode(dialogueManager);

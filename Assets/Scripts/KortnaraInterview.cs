@@ -637,7 +637,7 @@ public class KortnaraInterview : InterviewBase
             dm.optionFour.gameObject.SetActive(false);
             if (option == 1.0f) { dialogueIndexTracker = 100; dm.optionThree.gameObject.SetActive(false); dm.SetDialogueTexts("[hesitates] They're for anyone who needs a costume for any job.", "Any job? Like, blending into a crowd?", "Any job? Like, pretending to be a princess for a birthday party?"); }
             else if (option == 2.0f) { dialogueIndexTracker = 101; dm.optionThree.gameObject.SetActive(false); dm.SetDialogueTexts("It's possible\u2026 recently it's just been the Martians who work with the h\u2014 [cuts herself off]", "Humans?", "Martians working with whom?"); }
-            else if (option == 3.0f) { dialogueIndexTracker = 102; dm.optionOne.gameObject.SetActive(false); dm.optionTwo.gameObject.SetActive(false); dm.optionThree.gameObject.SetActive(false); dm.SetDialogueTexts("Thank you for your time! If you're anything like the writer before you, I'd love to work with you in the future. Here's my code \u2014 MASK. Do put in a good word for me!"); }
+            else if (option == 3.0f) { dialogueIndexTracker = 102; GameStateManager.Instance?.SetPromoCodeFound(); dm.optionOne.gameObject.SetActive(false); dm.optionTwo.gameObject.SetActive(false); dm.optionThree.gameObject.SetActive(false); dm.SetDialogueTexts("Thank you for your time! If you're anything like the writer before you, I'd love to work with you in the future. Here's my code \u2014 MASK. Do put in a good word for me!"); }
         }
 
         // ── NODE 100: For anyone who needs a costume for any job ──────────

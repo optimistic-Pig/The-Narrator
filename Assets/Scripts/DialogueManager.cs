@@ -49,12 +49,6 @@ public class DialogueManager : MonoBehaviour
     public GameObject endOfDayPanel;
     public TextMeshProUGUI endOfDaySummaryText;
 
-    [Header("Briefing Panel")]
-    [Tooltip("Image component under BriefingPanel that shows the NPC portrait.")]
-    public UnityEngine.UI.Image characterPortrait;
-    [Tooltip("TMP text under BriefingPanel that shows the assignment description.")]
-    public TextMeshProUGUI assignmentBody;
-
     [Header("Interviews")]
     public InterviewBase[] availableInterviews;
 
@@ -603,18 +597,6 @@ public class DialogueManager : MonoBehaviour
 
         HideAllPanels();
         if (briefingPanel != null) briefingPanel.SetActive(true);
-
-        // ── Populate portrait and description ─────────────────────────────
-        if (pendingInterview != null)
-        {
-            if (characterPortrait != null)
-            {
-                characterPortrait.sprite  = pendingInterview.portrait;
-                characterPortrait.enabled = pendingInterview.portrait != null;
-            }
-            if (assignmentBody != null)
-                assignmentBody.text = pendingInterview.BriefingDescription;
-        }
     }
 
     // =====================================================================
@@ -953,6 +935,18 @@ public class DialogueManager : MonoBehaviour
             case Phase.EndTransition:
                 if (current != null && !completedToday.Contains(current))
                     completedToday.Add(current);
+
+                // ── Secret ending: skip desk entirely ─────────────────────
+                if (GameStateManager.Instance != null &&
+                    GameStateManager.Instance.IsSecretEndingFound())
+                {
+                    HideAllPanels();
+                    if (endingManager != null)
+                        endingManager.TriggerEnding(marsOpinionScore);
+                    else
+                        Debug.LogError("[DM] EndingManager not assigned — secret ending cannot fire.");
+                    break;
+                }
 
                 if (GameStateManager.Instance != null)
                     GameStateManager.Instance.OnInterviewComplete();

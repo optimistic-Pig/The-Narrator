@@ -483,7 +483,8 @@ public class GorpInterview : InterviewBase
     {
         bool izul     = InterviewedIzul;
         bool kortnara = GameStateManager.Instance != null &&
-                        GameStateManager.Instance.IsAlreadyInterviewed(GameStateManager.Instance.kortnaraNPC);
+                        (GameStateManager.Instance.IsPromoCodeFound() ||
+                         GameStateManager.Instance.IsAlreadyInterviewed(GameStateManager.Instance.kortnaraNPC));
 
         switch (headlineIndex)
         {
@@ -509,7 +510,8 @@ public class GorpInterview : InterviewBase
 
         bool izulPath     = InterviewedIzul;
         bool kortnaraPath = GameStateManager.Instance != null &&
-                            GameStateManager.Instance.IsAlreadyInterviewed(GameStateManager.Instance.kortnaraNPC);
+                            (GameStateManager.Instance.IsPromoCodeFound() ||
+                             GameStateManager.Instance.IsAlreadyInterviewed(GameStateManager.Instance.kortnaraNPC));
 
         // ── NODE 0: Opening ──────────────────────────────────────────────
         if (dialogueIndexTracker == 0)
@@ -1409,6 +1411,33 @@ public class GorpInterview : InterviewBase
                     "He says that is very unlikely. He asks you to imagine a new group of humans just appearing out of nowhere. Is it possible? Yes. Is it plausible? No.",
                     "Ask what he thinks the real explanation is",
                     "Thank him and wrap up"
+                );
+            }
+        }
+
+        // ── NODE 201: Elaborate on foreign forces (missing node — bridged to 246) ─
+        else if (dialogueIndexTracker == 201)
+        {
+            dm.optionThree.gameObject.SetActive(false);
+            dm.optionFour.gameObject.SetActive(false);
+            if (option == 1.0f)
+            {
+                // Route into the existing foreign-forces elaboration chain
+                dialogueIndexTracker = 246;
+                dm.SetDialogueTexts(
+                    "He lowers his voice. He says he is a bit adamant to trust you, but for the sake of his world, he doesn\u2019t know what to do. He believes \u2018foreign forces\u2019 helped the rebels \u2014 physically or with technology nobody on Mars had seen before.",
+                    "Ask if he has any proof",
+                    "Thank him for sharing this"
+                );
+            }
+            else if (option == 2.0f)
+            {
+                // Wrap up — mark as last question node equivalent
+                dialogueIndexTracker = 203;
+                dm.optionOne.gameObject.SetActive(false);
+                dm.optionTwo.gameObject.SetActive(false);
+                dm.SetDialogueTexts(
+                    "He nods slowly, satisfied you listened. He says he has been carrying this for a long time and hopes the truth finds its way out eventually."
                 );
             }
         }
