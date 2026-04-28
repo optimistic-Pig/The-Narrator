@@ -118,6 +118,11 @@ public class EndingManager : MonoBehaviour
                 break;
         }
 
+        bool isSecret = (type == GameStateManager.EndingType.Secret);
+        AudioManager.Instance?.SwitchMusic(isSecret
+            ? AudioManager.MusicTrack.SecretEnding
+            : AudioManager.MusicTrack.Ending);
+
         if (endingTitleText != null) endingTitleText.text = title;
         if (endingBodyText  != null) endingBodyText.text  = body;
         if (endingPanel     != null) endingPanel.SetActive(true);

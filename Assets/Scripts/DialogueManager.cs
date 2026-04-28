@@ -42,12 +42,23 @@ public class DialogueManager : MonoBehaviour
     public TextMeshProUGUI dictionaryLookUpsText;
     public TextMeshProUGUI[] dictionarySlots;
 
+    [Header("Dictionary Right Panel")]
+    public GameObject dictDefaultMsg;        // DictDefaultMsg  — "No Entry Selected"
+    public GameObject dictSelectedView;      // DictSelectedView — shown when entry is selected
+    public GameObject dictUndiscoveredMsg;   // DictUndiscoveredMsg — shown for locked entries
+    public TextMeshProUGUI dictKlingonText;  // DictKlingonText
+    public TextMeshProUGUI dictEnglishText;  // DictEnglishText
+    public TextMeshProUGUI dictContextText;  // DictContextText
+    public TextMeshProUGUI dictStatusText;   // DictStatusText
+    public TextMeshProUGUI dictNotesText;    // DictNotesText
+
     [Header("Screen Panels")]
     public GameObject briefingPanel;
     public GameObject interviewPanel;
     public GameObject summaryPanel;
     public GameObject endOfDayPanel;
     public TextMeshProUGUI endOfDaySummaryText;
+    public UnityEngine.UI.Image briefingPortrait;   // portrait Image on the briefing panel
 
     [Header("Interviews")]
     public InterviewBase[] availableInterviews;
@@ -163,25 +174,7 @@ public class DialogueManager : MonoBehaviour
             var t = interviewPanel.transform.Find("DictionaryToggleBtn");
             if (t != null) dictionaryToggleBtn = t.gameObject;
         }
-        // ── Move Dictionary button away from status text ──────────────────
-        if (dictionaryToggleBtn != null)
-        {
-            var rt = dictionaryToggleBtn.GetComponent<RectTransform>();
-            if (rt != null)
-            {
-                rt.anchorMin        = new Vector2(1f, 1f);
-                rt.anchorMax        = new Vector2(1f, 1f);
-                rt.pivot            = new Vector2(1f, 1f);
-                rt.anchoredPosition = new Vector2(-4f, -4f);
-                rt.sizeDelta        = new Vector2(90f, 26f);
-            }
-        }
-        if (triesText != null)
-        {
-            var rt = triesText.GetComponent<RectTransform>();
-            if (rt != null)
-                rt.offsetMax = new Vector2(-100f, rt.offsetMax.y);
-        }
+        // DictionaryToggleBtn and triesText positions are set in the Inspector.
 
         // ── Responsive font sizing ────────────────────────────────────────
         ApplyResponsiveFontSizes();
@@ -597,6 +590,10 @@ public class DialogueManager : MonoBehaviour
 
         HideAllPanels();
         if (briefingPanel != null) briefingPanel.SetActive(true);
+
+        // Assign the NPC portrait sprite
+        if (briefingPortrait != null && pendingInterview != null)
+            briefingPortrait.sprite = pendingInterview.portrait;
     }
 
     // =====================================================================
@@ -658,6 +655,11 @@ public class DialogueManager : MonoBehaviour
         if (interviewPanel  != null) interviewPanel.SetActive(true);
         if (summaryPanel    != null) summaryPanel.SetActive(false);
         if (dictionaryPanel != null) dictionaryPanel.SetActive(false);
+
+        AudioManager.Instance?.SwitchInterviewMusic(
+        GameStateManager.Instance != null 
+        ? GameStateManager.Instance.GetID(current) 
+        : GameStateManager.CharacterID.None);
 
         nameText.text  = current.CharacterName;
         triesText.text = "Pick your questions wisely";
@@ -837,7 +839,12 @@ public class DialogueManager : MonoBehaviour
     public void ToggleDictionary()
     {
         if (dictionaryPanel != null)
-            dictionaryPanel.SetActive(!dictionaryPanel.activeSelf);
+        {
+            bool opening = !dictionaryPanel.activeSelf;
+            dictionaryPanel.SetActive(opening);
+            if (opening) AudioManager.Instance?.PlaySFX(AudioManager.SFX.Dictionary);
+            if (opening) ResetDictRightPanel();
+        }
     }
 
     private void InitDictionarySlots()
@@ -845,10 +852,12 @@ public class DialogueManager : MonoBehaviour
         if (current == null || dictionarySlots == null) return;
         for (int i = 0; i < dictionarySlots.Length; i++)
         {
+            // Hide the parent button (DictBtn), not just the text child
+            var btn = dictionarySlots[i].transform.parent.gameObject;
             if (i < current.DictionaryEntries.Length)
-                dictionarySlots[i].gameObject.SetActive(true);
+                btn.SetActive(true);
             else
-                dictionarySlots[i].gameObject.SetActive(false);
+                btn.SetActive(false);
         }
     }
 
@@ -857,13 +866,19 @@ public class DialogueManager : MonoBehaviour
         if (current == null || dictionarySlots == null) return;
         for (int i = 0; i < dictionarySlots.Length; i++)
         {
+            var btn = dictionarySlots[i].transform.parent.gameObject;
             if (i < current.DictionaryEntries.Length)
             {
                 var e = current.DictionaryEntries[i];
-                dictionarySlots[i].gameObject.SetActive(e.seen || e.translated);
+                bool show = e.seen || e.translated;
+                btn.SetActive(show);
+                if (show)
+                    dictionarySlots[i].text = e.translated
+                        ? e.translation
+                        : e.klingonWord + " (?)";
             }
             else
-                dictionarySlots[i].gameObject.SetActive(false);
+                btn.SetActive(false);
         }
     }
 
@@ -874,15 +889,80 @@ public class DialogueManager : MonoBehaviour
         if (i < 0 || i >= current.DictionaryEntries.Length) return;
 
         var entry = current.DictionaryEntries[i];
-        if (!entry.seen || entry.translated || dictionaryLookUps <= 0) return;
+
+        // If already translated, just show the entry — don't spend a lookup
+        if (entry.translated)
+        {
+            ShowDictEntry(entry);
+            return;
+        }
+
+        // Word seen but not yet translated — spend a lookup
+        if (!entry.seen || dictionaryLookUps <= 0)
+        {
+            ShowDictEntryLocked();
+            return;
+        }
 
         dictionaryLookUps--;
         dictionaryLookUpsText.text = "Lookups: " + dictionaryLookUps;
         entry.translated = true;
-        dictionarySlots[i].text = entry.klingonWord + " = " + entry.translation;
+        dictionarySlots[i].text = entry.translation;
 
         ApplyTranslations();
         RefreshDictionaryVisibility();
+        ShowDictEntry(entry);
+    }
+
+    private void ShowDictEntry(InterviewBase.DictEntry entry)
+    {
+Debug.Log("[DM] ShowDictEntry called: " + entry.klingonWord);
+        if (dictDefaultMsg    != null) dictDefaultMsg.SetActive(false);
+        if (dictUndiscoveredMsg != null) dictUndiscoveredMsg.SetActive(false);
+        if (dictSelectedView  != null) 
+        {
+            dictSelectedView.SetActive(true);
+
+            // Force layout rebuild so anchored children get correct rects
+            var rt = dictSelectedView.GetComponent<RectTransform>();
+            if (rt != null)
+            {
+                UnityEngine.UI.LayoutRebuilder.ForceRebuildLayoutImmediate(rt);
+                Debug.Log($"[DM] DictSelectedView rect after rebuild: {rt.rect}");
+            }
+
+            // Warn about CanvasGroup alpha issues
+            var cg = dictSelectedView.GetComponentInParent<CanvasGroup>();
+            if (cg != null && cg.alpha < 0.01f)
+                Debug.LogWarning($"[DM] CanvasGroup '{cg.name}' has alpha~0 — content will be invisible!");
+
+            // Warn about RectMask2D clipping
+            var mask = dictSelectedView.GetComponentInParent<UnityEngine.UI.RectMask2D>();
+            if (mask != null)
+            {
+                var maskRt = mask.GetComponent<RectTransform>();
+                Debug.Log($"[DM] RectMask2D found on '{mask.name}', rect: {maskRt?.rect}");
+            }
+        }        
+        if (dictKlingonText != null) dictKlingonText.text  = entry.klingonWord;
+        if (dictEnglishText != null) dictEnglishText.text  = entry.translation;
+        if (dictStatusText  != null) dictStatusText.text   = "Confirmed";
+        if (dictContextText != null) dictContextText.text  = "";  // fill from data if added later
+        if (dictNotesText   != null) dictNotesText.text    = "Translation logged after player interaction";
+    }
+
+    private void ShowDictEntryLocked()
+    {
+        if (dictDefaultMsg      != null) dictDefaultMsg.SetActive(false);
+        if (dictSelectedView    != null) dictSelectedView.SetActive(false);
+        if (dictUndiscoveredMsg != null) dictUndiscoveredMsg.SetActive(true);
+    }
+
+    private void ResetDictRightPanel()
+    {
+        if (dictDefaultMsg      != null) dictDefaultMsg.SetActive(true);
+        if (dictSelectedView    != null) dictSelectedView.SetActive(false);
+        if (dictUndiscoveredMsg != null) dictUndiscoveredMsg.SetActive(false);
     }
 
     // =====================================================================
@@ -1171,6 +1251,7 @@ public class DialogueManager : MonoBehaviour
 
         SetDialogueTexts(fullArticle, "", "", "", "");
 
+        AudioManager.Instance?.PlaySFX(AudioManager.SFX.Publish);
         optionOne.gameObject.SetActive(true);
         optionOne.text = "Publish";
         optionTwo.gameObject.SetActive(false);
@@ -1221,6 +1302,7 @@ public class DialogueManager : MonoBehaviour
     /// </summary>
     public void EndOfDayContinue()
     {
+        AudioManager.Instance?.SwitchMusic(AudioManager.MusicTrack.Office);
         _localDay = currentDay;
         completedToday.Clear();
         currentPhase = Phase.Dialogue;
@@ -1237,6 +1319,7 @@ public class DialogueManager : MonoBehaviour
 
     public void ReturnToOffice()
     {
+        AudioManager.Instance?.SwitchMusic(AudioManager.MusicTrack.Office);
         // If mid-dialogue, pause so the player can resume by re-clicking the NPC
         if (currentPhase == Phase.Dialogue && current != null)
         {

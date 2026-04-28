@@ -6,35 +6,19 @@ using TMPro;
 /// <summary>
 /// Manages the Main Menu scene for The Narrator.
 ///
-/// SCENE SETUP (in the MainMenu scene):
-///   1. Create a Canvas (Screen Space - Overlay)
-///   2. Add an EventSystem
-///   3. Create a GameObject called "MenuManager" and attach this script
-///   4. Build the UI panels as described below and wire them in the Inspector
-///
-/// PANEL HIERARCHY:
+/// SCENE SETUP:
 ///   Canvas
-///   ├─ MainPanel          ← root panel, always starts active
-///   │   ├─ TitleText      (TMP) "The Narrator"
-///   │   ├─ SubtitleText   (TMP) "Truth is shaped by how it's told"
-///   │   ├─ BeginDayBtn    → calls OnBeginDay()
-///   │   ├─ ContinueBtn    → calls OnContinue()   (greyed out — no save yet)
-///   │   ├─ OptionsBtn     → calls OnOptions()
-///   │   └─ CreditsBtn     → calls OnCredits()
-///   ├─ OptionsPanel       ← starts inactive
-///   │   ├─ TitleText      (TMP) "Options"
-///   │   ├─ FullscreenToggle (Toggle)
-///   │   ├─ SoundToggle    (Toggle)
-///   │   └─ BackBtn        → calls OnBack()
-///   └─ CreditsPanel       ← starts inactive
-///       ├─ TitleText      (TMP) "Credits"
-///       ├─ CreditsText    (TMP) — auto-filled from creditLines below
-///       └─ BackBtn        → calls OnBack()
+///   └─ MainPanel
+///       ├─ TitleText        (TMP) "The Narrator"
+///       ├─ SubtitleText     (TMP) tagline / credits display  ← reused
+///       ├─ BeginDayBtn      → OnBeginDay()
+///       ├─ ContinueBtn      → OnContinue()   (non-interactable)
+///       ├─ MuteBtn          → OnToggleMute()
+///       ├─ FullscreenBtn    → OnToggleFullscreen()
+///       └─ CreditsBtn       → OnToggleCredits()
 ///
-/// SCENE SETUP IN BUILD SETTINGS:
-///   File → Build Settings → add both scenes:
-///     Index 0: MainMenu
-///     Index 1: SampleScene
+/// No sub-panels. Options are toggle buttons whose labels update in place.
+/// Credits swap the subtitle text; clicking again restores the tagline.
 /// </summary>
 public class MainMenuManager : MonoBehaviour
 {
@@ -42,45 +26,35 @@ public class MainMenuManager : MonoBehaviour
     // INSPECTOR REFERENCES
     // =====================================================================
 
-    [Header("Panels")]
+    [Header("Panel")]
     public GameObject mainPanel;
-    public GameObject optionsPanel;
-    public GameObject creditsPanel;
 
-    [Header("Main Panel Buttons")]
+    [Header("Buttons")]
     public Button beginDayBtn;
-    public Button continueBtn;      // greyed out until save system exists
+    public Button continueBtn;
     public Button optionsBtn;
+    public Button muteBtn;
+    public Button fullscreenBtn;
     public Button creditsBtn;
 
-    [Header("Options Panel")]
-    public Toggle fullscreenToggle;
-    public Toggle soundToggle;
-
-    [Header("Credits Panel")]
-    public TextMeshProUGUI creditsBodyText;
+    [Header("Text")]
+    public TextMeshProUGUI subtitleText;
 
     // =====================================================================
-    // CREDITS CONTENT  (hardcoded per your team)
+    // CONTENT
     // =====================================================================
 
-    private readonly string[] creditLines = new string[]
-    {
-        "Olivia Gray",
-        "UI / UX Designer",
-        "",
-        "Miles Mattson",
-        "Programming",
-        "",
-        "Joseph Ortiz",
-        "Narrative  ·  Sound",
-    };
+    private const string TAGLINE       = "Truth is shaped by how it's told";
+    private const string CREDITS_TEXT  = "Olivia Gray — UI/UX  ·  Miles Mattson — Programming  ·  Joseph Ortiz — Narrative & Sound";
+    private const string GAME_SCENE    = "SampleScene";
 
     // =====================================================================
-    // SCENE NAMES
+    // STATE
     // =====================================================================
 
-    private const string GAME_SCENE = "SampleScene";
+    private bool showingCredits  = false;
+    private bool showingOptions  = false;
+    private bool muted           = false;
 
     // =====================================================================
     // UNITY LIFECYCLE
@@ -88,38 +62,36 @@ public class MainMenuManager : MonoBehaviour
 
     void Start()
     {
-        // Show only main panel
-        ShowPanel(mainPanel);
+        AudioManager.Instance?.SwitchMusic(AudioManager.MusicTrack.Menu);
 
-        // Wire buttons (safe even if already wired in Inspector)
-        if (beginDayBtn  != null) beginDayBtn .onClick.AddListener(OnBeginDay);
-        if (continueBtn  != null) continueBtn .onClick.AddListener(OnContinue);
-        if (optionsBtn   != null) optionsBtn  .onClick.AddListener(OnOptions);
-        if (creditsBtn   != null) creditsBtn  .onClick.AddListener(OnCredits);
+        if (mainPanel != null) mainPanel.SetActive(true);
 
-        // Grey out Continue until save system is implemented
+        // Wire buttons
+        if (beginDayBtn    != null) beginDayBtn   .onClick.AddListener(OnBeginDay);
+        if (continueBtn    != null) continueBtn   .onClick.AddListener(OnContinue);
+        if (optionsBtn     != null) optionsBtn    .onClick.AddListener(OnToggleOptions);
+        if (muteBtn        != null) muteBtn       .onClick.AddListener(OnToggleMute);
+        if (fullscreenBtn  != null) fullscreenBtn .onClick.AddListener(OnToggleFullscreen);
+        if (creditsBtn     != null) creditsBtn    .onClick.AddListener(OnToggleCredits);
+
+        // Hide options buttons until Options is clicked
+        if (muteBtn       != null) muteBtn      .gameObject.SetActive(false);
+        if (fullscreenBtn != null) fullscreenBtn.gameObject.SetActive(false);
+
+        // Continue is locked until a save system exists
         if (continueBtn != null)
         {
             continueBtn.interactable = false;
-            var tmp = continueBtn.GetComponentInChildren<TextMeshProUGUI>();
-            if (tmp != null) tmp.text = "Continue  (coming soon)";
+            SetButtonLabel(continueBtn, "Continue  (coming soon)");
         }
 
-        // Options: sync toggles to current state
-        if (fullscreenToggle != null)
-        {
-            fullscreenToggle.isOn = Screen.fullScreen;
-            fullscreenToggle.onValueChanged.AddListener(OnFullscreenToggle);
-        }
-        if (soundToggle != null)
-        {
-            soundToggle.isOn = AudioListener.volume > 0f;
-            soundToggle.onValueChanged.AddListener(OnSoundToggle);
-        }
+        // Sync initial toggle button labels to actual state
+        muted = AudioListener.volume <= 0f;
+        RefreshMuteLabel();
+        RefreshFullscreenLabel();
 
-        // Credits: build body text from array
-        if (creditsBodyText != null)
-            creditsBodyText.text = string.Join("\n", creditLines);
+        // Subtitle starts as tagline
+        if (subtitleText != null) subtitleText.text = TAGLINE;
     }
 
     // =====================================================================
@@ -134,47 +106,54 @@ public class MainMenuManager : MonoBehaviour
     public void OnContinue()
     {
         // Placeholder — no save system yet
-        // When save is implemented: load save data then LoadScene(GAME_SCENE)
         Debug.Log("[MainMenu] Continue: no save system yet.");
     }
 
-    public void OnOptions()
+    public void OnToggleOptions()
     {
-        ShowPanel(optionsPanel);
+        showingOptions = !showingOptions;
+        if (muteBtn       != null) muteBtn      .gameObject.SetActive(showingOptions);
+        if (fullscreenBtn != null) fullscreenBtn.gameObject.SetActive(showingOptions);
     }
 
-    public void OnCredits()
+    public void OnToggleMute()
     {
-        ShowPanel(creditsPanel);
+        muted = !muted;
+        AudioListener.volume = muted ? 0f : 1f;
+        RefreshMuteLabel();
     }
 
-    public void OnBack()
+    public void OnToggleFullscreen()
     {
-        ShowPanel(mainPanel);
+        Screen.fullScreen = !Screen.fullScreen;
+        RefreshFullscreenLabel();
     }
 
-    // =====================================================================
-    // OPTIONS HANDLERS
-    // =====================================================================
-
-    private void OnFullscreenToggle(bool value)
+    public void OnToggleCredits()
     {
-        Screen.fullScreen = value;
-    }
-
-    private void OnSoundToggle(bool value)
-    {
-        AudioListener.volume = value ? 1f : 0f;
+        showingCredits = !showingCredits;
+        if (subtitleText != null)
+            subtitleText.text = showingCredits ? CREDITS_TEXT : TAGLINE;
     }
 
     // =====================================================================
     // HELPERS
     // =====================================================================
 
-    private void ShowPanel(GameObject target)
+    private void RefreshMuteLabel()
     {
-        if (mainPanel    != null) mainPanel   .SetActive(mainPanel    == target);
-        if (optionsPanel != null) optionsPanel.SetActive(optionsPanel == target);
-        if (creditsPanel != null) creditsPanel.SetActive(creditsPanel == target);
+        SetButtonLabel(muteBtn, muted ? "Unmute" : "Mute");
+    }
+
+    private void RefreshFullscreenLabel()
+    {
+        SetButtonLabel(fullscreenBtn, Screen.fullScreen ? "Windowed" : "Fullscreen");
+    }
+
+    private void SetButtonLabel(Button btn, string label)
+    {
+        if (btn == null) return;
+        var tmp = btn.GetComponentInChildren<TextMeshProUGUI>();
+        if (tmp != null) tmp.text = label;
     }
 }

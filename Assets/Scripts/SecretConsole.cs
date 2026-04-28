@@ -66,6 +66,8 @@ public class SecretConsole : MonoBehaviour
             fadeGroup.alpha = 1f;
         }
 
+        AudioManager.Instance?.PlaySFX(AudioManager.SFX.Teleport);
+
         // ── Teleport ──────────────────────────────────────────────────────
         // CharacterController must be disabled before moving, otherwise
         // Unity snaps the player back.
