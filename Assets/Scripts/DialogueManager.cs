@@ -122,6 +122,8 @@ public class DialogueManager : MonoBehaviour
 
     private InterviewBase pendingInterview;
 
+    private GameObject optionsGroup;   // parent transform shared by all 4 option buttons
+
     private string rawMainText = "";
     private string rawOpt1 = "";
     private string rawOpt2 = "";
@@ -183,16 +185,16 @@ public class DialogueManager : MonoBehaviour
         // Running layout fixes on the same frame as Start() can be overridden
         // by Unity's own Canvas layout pass. Deferring to the next frame lets
         // us win that race.
-        //StartCoroutine(ApplyLayoutNextFrame());
+        StartCoroutine(ApplyLayoutNextFrame());
     }
-    /*
+
     private System.Collections.IEnumerator ApplyLayoutNextFrame()
     {
         yield return null;   // wait one frame for Canvas to initialise
         FixPanelLayout();
         Canvas.ForceUpdateCanvases();
     }
-    */
+
     // =====================================================================
     // RUNTIME LAYOUT FIX
     // =====================================================================
@@ -297,6 +299,9 @@ public class DialogueManager : MonoBehaviour
         WireBtn(optionTwo,   2f);
         WireBtn(optionThree, 3f);
         WireBtn(optionFour,  4f);
+
+        // ── Make option buttons grow to fit their text instead of clipping ──
+        ConfigureOptionButtonsForDynamicSizing();
 
         WireBtnByName(briefingPanel,  "BeginInterviewBtn", BeginInterview);
         if (returnToOfficeBtn != null)
@@ -811,6 +816,7 @@ public class DialogueManager : MonoBehaviour
         optionThree.text = TranslateText(rawOpt3);
         optionFour.text  = TranslateText(rawOpt4);
         ScrollToTop();
+        RefreshOptionsLayout();
     }
 
     private void ScrollToTop()
@@ -1193,27 +1199,27 @@ Debug.Log("[DM] ShowDictEntry called: " + entry.klingonWord);
 
         built += $"[{currentParagraphIndex + 1}/{currentArticle.paragraphs.Length}] {para.promptText}";
 
-        // Option labels: show the first 100 chars of each paragraph so the
-        // button text doesn't overflow with long multi-sentence text.
-        SetDialogueTexts(built,
-            TruncateOption(para.truthful.text),
-            TruncateOption(para.dishonest.text),
-            TruncateOption(para.ambitious.text),
-            "");
-
+        // Set active state BEFORE the text/layout pass below. RefreshOptionsLayout
+        // (triggered inside SetDialogueTexts) measures whichever option buttons are
+        // currently active — if we activate/deactivate them afterward instead, it
+        // measures the wrong set (leftover from the previous screen), computes too
+        // small a height, and the real (larger) button block ends up overlapping
+        // mainText once Unity's own layout pass catches up a frame later.
         optionOne.gameObject.SetActive(true);
         optionTwo.gameObject.SetActive(true);
         optionThree.gameObject.SetActive(true);
         optionFour.gameObject.SetActive(false);
 
+        // Buttons now resize to fit their text (see ConfigureOptionButtonsForDynamicSizing),
+        // so the full paragraph choice can be shown instead of being cut at 100 chars.
+        SetDialogueTexts(built,
+            para.truthful.text,
+            para.dishonest.text,
+            para.ambitious.text,
+            "");
+
         triesText.gameObject.SetActive(true);
         triesText.text = $"Writing article... ({currentParagraphIndex + 1}/{currentArticle.paragraphs.Length})";
-    }
-
-    private static string TruncateOption(string s, int maxLen = 100)
-    {
-        if (string.IsNullOrEmpty(s) || s.Length <= maxLen) return s;
-        return s.Substring(0, maxLen) + "\u2026";
     }
 
     private void HandleParagraphChoice(float option)
@@ -1249,14 +1255,18 @@ Debug.Log("[DM] ShowDictEntry called: " + entry.klingonWord);
         foreach (var line in articleLines)
             fullArticle += line + "\n\n";
 
-        SetDialogueTexts(fullArticle, "", "", "", "");
-
-        AudioManager.Instance?.PlaySFX(AudioManager.SFX.Publish);
+        // Active state set BEFORE the text/layout pass — see the comment in
+        // ShowCurrentParagraph for why the order matters.
         optionOne.gameObject.SetActive(true);
-        optionOne.text = "Publish";
         optionTwo.gameObject.SetActive(false);
         optionThree.gameObject.SetActive(false);
         optionFour.gameObject.SetActive(false);
+
+        SetDialogueTexts(fullArticle, "", "", "", "");
+
+        AudioManager.Instance?.PlaySFX(AudioManager.SFX.Publish);
+        optionOne.text = "Publish";
+        RefreshOptionsLayout();   // "Publish" was set directly, bypassing ApplyTranslations
 
         triesText.gameObject.SetActive(true);
         triesText.text = $"Day {currentDay}  —  ready to publish";
@@ -1385,6 +1395,124 @@ Debug.Log("[DM] ShowDictEntry called: " + entry.klingonWord);
     {
         if (returnToOfficeBtn != null)
             returnToOfficeBtn.SetActive(visible);
+    }
+
+    // =====================================================================
+    // DYNAMIC OPTION-BUTTON SIZING
+    // =====================================================================
+    // The old setup put all 4 option buttons in a fixed 2x2 grid inside a
+    // 230px-tall "OptionsGroup", with each TMP text left on its prefab's
+    // default overflow mode (Ellipsis/Truncate). Any answer long enough to
+    // need more than one line inside that fixed cell got cut off with "...".
+    //
+    // Fix: turn OptionsGroup into a VerticalLayoutGroup + ContentSizeFitter
+    // so it (and each button inside it) grows to fit however much text is
+    // actually there, then push DialogueArea's bottom edge down to match —
+    // so the two never overlap.
+
+    private void ConfigureOptionButtonsForDynamicSizing()
+    {
+        if (optionOne == null) return;
+
+        Transform group = optionOne.transform.parent;
+        if (group == null) return;
+        optionsGroup = group.gameObject;
+
+        // A GridLayoutGroup (fixed-size 2x2) fights dynamic sizing — remove it.
+        var grid = optionsGroup.GetComponent<UnityEngine.UI.GridLayoutGroup>();
+        if (grid != null) DestroyImmediate(grid);
+
+        var vlg = optionsGroup.GetComponent<UnityEngine.UI.VerticalLayoutGroup>();
+        if (vlg == null) vlg = optionsGroup.AddComponent<UnityEngine.UI.VerticalLayoutGroup>();
+        vlg.childForceExpandWidth  = true;
+        vlg.childForceExpandHeight = false;
+        vlg.childControlWidth      = true;
+        vlg.childControlHeight     = true;
+        vlg.spacing                = 10f;
+        vlg.padding                = new RectOffset(20, 20, 10, 10);
+
+        var groupCsf = optionsGroup.GetComponent<UnityEngine.UI.ContentSizeFitter>();
+        if (groupCsf == null) groupCsf = optionsGroup.AddComponent<UnityEngine.UI.ContentSizeFitter>();
+        groupCsf.verticalFit   = UnityEngine.UI.ContentSizeFitter.FitMode.PreferredSize;
+        groupCsf.horizontalFit = UnityEngine.UI.ContentSizeFitter.FitMode.Unconstrained;
+
+        // Anchor to the bottom of the panel; height now comes from content,
+        // not a hardcoded 230px block.
+        var groupRt = optionsGroup.GetComponent<RectTransform>();
+        if (groupRt != null)
+        {
+            groupRt.anchorMin        = new Vector2(0f, 0f);
+            groupRt.anchorMax        = new Vector2(1f, 0f);
+            groupRt.pivot            = new Vector2(0.5f, 0f);
+            groupRt.anchoredPosition = Vector2.zero;
+        }
+
+        foreach (var opt in new[] { optionOne, optionTwo, optionThree, optionFour })
+        {
+            if (opt == null) continue;
+
+            // Never truncate/ellipsis — wrap onto as many lines as needed.
+            opt.enableWordWrapping = true;
+            opt.overflowMode       = TMPro.TextOverflowModes.Overflow;
+
+            GameObject btnGO = opt.gameObject;
+            var btn = opt.GetComponentInParent<UnityEngine.UI.Button>();
+            if (btn != null) btnGO = btn.gameObject;
+
+            var le = btnGO.GetComponent<UnityEngine.UI.LayoutElement>();
+            if (le == null) le = btnGO.AddComponent<UnityEngine.UI.LayoutElement>();
+            le.minHeight     = 60f;
+            le.flexibleWidth = 1f;
+
+            var csf = btnGO.GetComponent<UnityEngine.UI.ContentSizeFitter>();
+            if (csf == null) csf = btnGO.AddComponent<UnityEngine.UI.ContentSizeFitter>();
+            csf.verticalFit   = UnityEngine.UI.ContentSizeFitter.FitMode.PreferredSize;
+            csf.horizontalFit = UnityEngine.UI.ContentSizeFitter.FitMode.Unconstrained;
+        }
+    }
+
+    /// <summary>
+    /// Call whenever option text changes. Rebuilds the option-group layout
+    /// so its height reflects the current text, then pushes both DialogueArea's
+    /// and mainText's own bottom edge to sit just above it.
+    ///
+    /// This replaces the old hardcoded SetMainTextBottom(230f)/(10f) calls as
+    /// the source of truth for that boundary. Those calls only set a one-time
+    /// static number, so as soon as options grew taller than whatever number
+    /// was hardcoded (which happens constantly now that paragraph choices are
+    /// full-length instead of truncated to 100 chars), mainText's bottom edge
+    /// stayed put and the options rendered right on top of it. Recomputing it
+    /// here, every time text changes, keeps it correct in every phase.
+    /// </summary>
+    private void RefreshOptionsLayout()
+    {
+        if (optionsGroup == null || interviewPanel == null) return;
+
+        var groupRt = optionsGroup.GetComponent<RectTransform>();
+        if (groupRt == null) return;
+
+        Canvas.ForceUpdateCanvases();
+        UnityEngine.UI.LayoutRebuilder.ForceRebuildLayoutImmediate(groupRt);
+
+        float groupHeight = groupRt.rect.height;
+
+        var dialogueAreaGO = interviewPanel.transform.Find("DialogueArea")?.gameObject;
+        if (dialogueAreaGO != null)
+        {
+            var daRt = dialogueAreaGO.GetComponent<RectTransform>();
+            if (daRt != null)
+                daRt.offsetMin = new Vector2(daRt.offsetMin.x, groupHeight + 10f);
+        }
+
+        // mainText's bottom edge is a separate RectTransform from DialogueArea's
+        // (see SetMainTextBottom) — update it too, or it keeps whatever fixed
+        // number was last hardcoded and text sits underneath the options.
+        if (mainText != null)
+        {
+            var mtRt = mainText.GetComponent<RectTransform>();
+            if (mtRt != null)
+                mtRt.offsetMin = new Vector2(mtRt.offsetMin.x, groupHeight + 10f);
+        }
     }
 
     // ── Responsive font sizing ────────────────────────────────────────────
