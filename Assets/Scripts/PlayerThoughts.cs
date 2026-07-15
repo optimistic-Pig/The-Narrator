@@ -78,8 +78,8 @@ public class PlayerThoughts : MonoBehaviour
             thoughtText.enableWordWrapping  = false;
             thoughtText.overflowMode        = TMPro.TextOverflowModes.Ellipsis;
             thoughtText.enableAutoSizing    = true;
-            thoughtText.fontSizeMin         = 12f;
-            thoughtText.fontSizeMax         = 22f;
+            thoughtText.fontSizeMin         = 36f;
+            thoughtText.fontSizeMax         = 40f;
             thoughtText.alignment           = TMPro.TextAlignmentOptions.Center;
         }
 
