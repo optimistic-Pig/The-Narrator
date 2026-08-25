@@ -40,20 +40,29 @@ public class MainMenuManager : MonoBehaviour
     [Header("Text")]
     public TextMeshProUGUI subtitleText;
 
+    [Header("Popups")]
+    public GameObject creditsPanel;
+    public TextMeshProUGUI creditsPanelText;
+    public Button creditsCloseBtn;
+    public GameObject optionsPanel;
+    public Button optionsCloseBtn;
+
     // =====================================================================
     // CONTENT
     // =====================================================================
 
     private const string TAGLINE       = "Truth is shaped by how it's told";
-    private const string CREDITS_TEXT  = "Olivia Gray — UI/UX  ·  Miles Mattson — Programming  ·  Joseph Ortiz — Narrative & Sound";
+    /*private const string CREDITS_TEXT  =
+        "Miles Mattson — Lead Developer\n" +
+        "Joseph Ortiz — Narrative Lead, Audio Engineer\n" +
+        "Liv Gray — UI/UX Lead, Artist";
+    */
     private const string GAME_SCENE    = "SampleScene";
 
     // =====================================================================
     // STATE
     // =====================================================================
 
-    private bool showingCredits  = false;
-    private bool showingOptions  = false;
     private bool muted           = false;
 
     // =====================================================================
@@ -62,21 +71,34 @@ public class MainMenuManager : MonoBehaviour
 
     void Start()
     {
+        InitializeMenu();
+    }
+
+    void OnEnable()
+    {
+        InitializeMenu();
+    }
+
+    private void InitializeMenu()
+    {
         AudioManager.Instance?.SwitchMusic(AudioManager.MusicTrack.Menu);
 
         if (mainPanel != null) mainPanel.SetActive(true);
 
         // Wire buttons
-        if (beginDayBtn    != null) beginDayBtn   .onClick.AddListener(OnBeginDay);
-        if (continueBtn    != null) continueBtn   .onClick.AddListener(OnContinue);
-        if (optionsBtn     != null) optionsBtn    .onClick.AddListener(OnToggleOptions);
-        if (muteBtn        != null) muteBtn       .onClick.AddListener(OnToggleMute);
-        if (fullscreenBtn  != null) fullscreenBtn .onClick.AddListener(OnToggleFullscreen);
-        if (creditsBtn     != null) creditsBtn    .onClick.AddListener(OnToggleCredits);
+        if (beginDayBtn    != null) { beginDayBtn.onClick.RemoveListener(OnBeginDay); beginDayBtn.onClick.AddListener(OnBeginDay); }
+        if (continueBtn    != null) { continueBtn.onClick.RemoveListener(OnContinue); continueBtn.onClick.AddListener(OnContinue); }
+        if (optionsBtn     != null) { optionsBtn.onClick.RemoveListener(OpenOptions); optionsBtn.onClick.AddListener(OpenOptions); }
+        if (muteBtn        != null) { muteBtn.onClick.RemoveListener(OnToggleMute); muteBtn.onClick.AddListener(OnToggleMute); }
+        if (fullscreenBtn  != null) { fullscreenBtn.onClick.RemoveListener(OnToggleFullscreen); fullscreenBtn.onClick.AddListener(OnToggleFullscreen); }
+        if (creditsBtn     != null) { creditsBtn.onClick.RemoveListener(OnToggleCredits); creditsBtn.onClick.AddListener(OnToggleCredits); }
 
-        // Hide options buttons until Options is clicked
-        if (muteBtn       != null) muteBtn      .gameObject.SetActive(false);
-        if (fullscreenBtn != null) fullscreenBtn.gameObject.SetActive(false);
+        // Popups start hidden
+        if (creditsPanel != null) creditsPanel.SetActive(false);
+        if (optionsPanel != null) optionsPanel.SetActive(false);
+        //if (creditsPanelText != null) creditsPanelText.text = CREDITS_TEXT;
+        if (creditsCloseBtn != null) { creditsCloseBtn.onClick.RemoveListener(OnToggleCredits); creditsCloseBtn.onClick.AddListener(OnToggleCredits); }
+        if (optionsCloseBtn != null) { optionsCloseBtn.onClick.RemoveListener(CloseOptions); optionsCloseBtn.onClick.AddListener(CloseOptions); }
 
         // Continue is locked until a save system exists
         if (continueBtn != null)
@@ -109,11 +131,13 @@ public class MainMenuManager : MonoBehaviour
         Debug.Log("[MainMenu] Continue: no save system yet.");
     }
 
-    public void OnToggleOptions()
+    public void OpenOptions()
     {
-        showingOptions = !showingOptions;
-        if (muteBtn       != null) muteBtn      .gameObject.SetActive(showingOptions);
-        if (fullscreenBtn != null) fullscreenBtn.gameObject.SetActive(showingOptions);
+        if (optionsPanel != null) optionsPanel.SetActive(true);
+    }
+    public void CloseOptions()
+    {
+        if (optionsPanel != null) optionsPanel.SetActive(false);
     }
 
     public void OnToggleMute()
@@ -131,10 +155,9 @@ public class MainMenuManager : MonoBehaviour
 
     public void OnToggleCredits()
     {
-        showingCredits = !showingCredits;
-        if (subtitleText != null)
-            subtitleText.text = showingCredits ? CREDITS_TEXT : TAGLINE;
+        if (creditsPanel != null) creditsPanel.SetActive(!creditsPanel.activeSelf);
     }
+
 
     // =====================================================================
     // HELPERS

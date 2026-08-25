@@ -126,6 +126,14 @@ public class EndingManager : MonoBehaviour
         if (endingTitleText != null) endingTitleText.text = title;
         if (endingBodyText  != null) endingBodyText.text  = body;
         if (endingPanel     != null) endingPanel.SetActive(true);
+
+        var thoughts = FindObjectOfType<PlayerThoughts>();
+        if (thoughts != null)
+        {
+            thoughts.HideThought();
+            thoughts.SetOfficeMode(false);
+        }
+
         if (returnToMenuBtn != null)
         {
             returnToMenuBtn.gameObject.SetActive(true);

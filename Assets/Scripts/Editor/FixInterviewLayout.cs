@@ -335,11 +335,17 @@ public class FixInterviewLayout : EditorWindow
         leftVLG.childForceExpandHeight = false;
         leftVLG.childAlignment      = TextAnchor.UpperCenter;
 
-        // Move DictBtn1-5 into left column and restyle as pill buttons
-        for (int i = 1; i <= 5; i++)
+        // Create enough slots for the combined interview lexicon.
+        for (int i = 1; i <= 12; i++)
         {
-            var btn = Find("DictBtn" + i);
-            if (btn == null) continue;
+            var btn = GetOrCreateChild(leftColGO, "DictBtn" + i);
+            EnsureComp<Button>(btn);
+            var label = GetOrCreateChild(btn, "DictLabel" + i);
+            FixRT(label, rt => {
+                Anchor(rt, 0, 0, 1, 1);
+                rt.offsetMin = Vector2.zero; rt.offsetMax = Vector2.zero;
+            });
+            EnsureComp<TextMeshProUGUI>(label);
             if (btn.transform.parent != leftColGO.transform)
                 Undo.SetTransformParent(btn.transform, leftColGO.transform, "Move DictBtn" + i + " → DictLeftCol");
             StyleWordButton(btn, i);

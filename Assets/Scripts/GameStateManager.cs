@@ -70,6 +70,26 @@ public class GameStateManager : MonoBehaviour
     private readonly HashSet<CharacterID> interviewed  = new HashSet<CharacterID>();
     private InterviewBase                 activeNPC    = null;
 
+    public List<InterviewBase.DictEntry> GetGlobalDictionaryEntries()
+    {
+        var entries = new List<InterviewBase.DictEntry>();
+        var seenWords = new HashSet<string>();
+        var interviews = new[] { izulNPC, kortnaraNPC, gorpNPC, andrewNPC };
+
+        foreach (var interview in interviews)
+        {
+            if (interview == null || interview.DictionaryEntries == null) continue;
+            foreach (var entry in interview.DictionaryEntries)
+            {
+                if (entry == null || string.IsNullOrEmpty(entry.klingonWord)) continue;
+                string key = InterviewBase.NormalizeDictionaryText(entry.klingonWord);
+                if (seenWords.Add(key)) entries.Add(entry);
+            }
+        }
+
+        return entries;
+    }
+
     // NOTE: IsPromoCodeFound / IsBunkerDialogueFound read from the same
     // properties that the Set…() methods write to.  The private _xxx fields
     // below have been removed to avoid the silent "always-false" bug.

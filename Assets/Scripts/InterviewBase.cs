@@ -1,4 +1,6 @@
 using System.Collections.Generic;
+using System.Linq;
+using System.Text.RegularExpressions;
 using UnityEngine;
 
 /// <summary>
@@ -108,10 +110,59 @@ public abstract class InterviewBase : MonoBehaviour
     public virtual void ResetState()
     {
         dialogueIndexTracker = 0f;
-        if (DictionaryEntries != null)
-            foreach (var e in DictionaryEntries) { e.translated = false; e.seen = false; }
         if (Topics != null)
             foreach (var t in Topics) { t.encountered = false; }
+    }
+
+    public static string NormalizeDictionaryText(string text)
+    {
+        return string.IsNullOrEmpty(text)
+            ? text
+            : text.Replace('\u2018', '\'').Replace('\u2019', '\'');
+    }
+
+    public static bool ContainsDictionarySpelling(string text, DictEntry entry)
+    {
+        string normalized = NormalizeDictionaryText(text);
+        if (string.IsNullOrEmpty(normalized) || entry == null) return false;
+
+        if (normalized.IndexOf(NormalizeDictionaryText(entry.klingonWord),
+                               System.StringComparison.OrdinalIgnoreCase) >= 0)
+            return true;
+
+        if (entry.altSpellings == null) return false;
+        foreach (string spelling in entry.altSpellings)
+            if (!string.IsNullOrEmpty(spelling) &&
+                normalized.IndexOf(NormalizeDictionaryText(spelling),
+                                   System.StringComparison.OrdinalIgnoreCase) >= 0)
+                return true;
+
+        return false;
+    }
+
+    public static string ReplaceDictionarySpellings(string text, DictEntry entry,
+                                                     string replacement)
+    {
+        if (string.IsNullOrEmpty(text) || entry == null) return text;
+
+        var spellings = new List<string> { entry.klingonWord };
+        if (entry.altSpellings != null) spellings.AddRange(entry.altSpellings);
+
+        string pattern = string.Join("|", spellings
+            .Where(spelling => !string.IsNullOrEmpty(spelling))
+            .OrderByDescending(spelling => spelling.Length)
+            .Select(spelling => string.Concat(spelling.Select(character =>
+                character == '\'' || character == '\u2018' || character == '\u2019'
+                    ? "['\\u2018\\u2019]"
+                    : Regex.Escape(character.ToString())))));
+
+        if (string.IsNullOrEmpty(pattern)) return text;
+
+        string replacementPattern = replacement.EndsWith(" (?)")
+            ? "(" + pattern + ")(?!\\s*\\(\\?\\))"
+            : pattern;
+        return Regex.Replace(text, replacementPattern, replacement,
+                     RegexOptions.IgnoreCase);
     }
 
     public virtual string GetEndOfDaySummary()

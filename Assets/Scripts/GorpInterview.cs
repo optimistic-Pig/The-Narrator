@@ -521,7 +521,7 @@ public class GorpInterview : InterviewBase
                 dm.optionThree.gameObject.SetActive(false);
                 dm.optionFour.gameObject.SetActive(false);
                 dm.SetDialogueTexts(
-                    "Gorp is a GhomwI\u2019 (?) who has seen a lot in his life. He loves talking history to anyone who will listen.",
+                    "Gorp is a GhomwI\u2019 who has seen a lot in his life. He loves talking history to anyone who will listen.",
                     "Ask him who he is",
                     "Ask him what he studies"
                 );

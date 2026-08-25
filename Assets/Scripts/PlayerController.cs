@@ -341,6 +341,13 @@ public class PlayerMovement : MonoBehaviour
                 else if (tag == "Dictionary3") { dialogueManager.DictionaryLookup(3); }
                 else if (tag == "Dictionary4") { dialogueManager.DictionaryLookup(4); }
                 else if (tag == "Dictionary5") { dialogueManager.DictionaryLookup(5); }
+                else if (tag == "Dictionary6")  { dialogueManager.DictionaryLookup(6); }
+                else if (tag == "Dictionary7")  { dialogueManager.DictionaryLookup(7); }
+                else if (tag == "Dictionary8")  { dialogueManager.DictionaryLookup(8); }
+                else if (tag == "Dictionary9")  { dialogueManager.DictionaryLookup(9); }
+                else if (tag == "Dictionary10") { dialogueManager.DictionaryLookup(10); }
+                else if (tag == "Dictionary11") { dialogueManager.DictionaryLookup(11); }
+                else if (tag == "Dictionary12") { dialogueManager.DictionaryLookup(12); }
 
                 // ── Dialogue options ──────────────────────────────────────
                 // Uses BOTH tag and name detection to work around Unity

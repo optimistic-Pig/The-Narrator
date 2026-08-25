@@ -123,6 +123,7 @@ public class DialogueManager : MonoBehaviour
     private InterviewBase pendingInterview;
 
     private GameObject optionsGroup;   // parent transform shared by all 4 option buttons
+    private float _baseOptionFontSize = -1f;  // captured once from optionOne; 100% baseline for shrink-to-fit
 
     private string rawMainText = "";
     private string rawOpt1 = "";
@@ -758,21 +759,17 @@ public class DialogueManager : MonoBehaviour
         if (string.IsNullOrEmpty(input) || current == null) return input;
 
         string result = input;
-        foreach (var entry in current.DictionaryEntries)
+        foreach (var entry in GetDictionaryEntries())
         {
             if (entry.translated)
             {
-                result = result.Replace(entry.klingonWord, entry.translation);
-                if (entry.altSpellings != null)
-                    foreach (var alt in entry.altSpellings)
-                        result = result.Replace(alt, entry.translation);
+                result = InterviewBase.ReplaceDictionarySpellings(
+                    result, entry, entry.translation);
             }
             else if (entry.seen)
             {
-                result = result.Replace(entry.klingonWord, entry.klingonWord + " (?)");
-                if (entry.altSpellings != null)
-                    foreach (var alt in entry.altSpellings)
-                        result = result.Replace(alt, alt + " (?)");
+                result = InterviewBase.ReplaceDictionarySpellings(
+                    result, entry, entry.klingonWord + " (?)");
             }
         }
         return result;
@@ -793,10 +790,8 @@ public class DialogueManager : MonoBehaviour
         {
             foreach (var entry in current.DictionaryEntries)
             {
-                if (allText.Contains(entry.klingonWord)) entry.seen = true;
-                if (entry.altSpellings != null)
-                    foreach (var alt in entry.altSpellings)
-                        if (allText.Contains(alt)) entry.seen = true;
+                if (InterviewBase.ContainsDictionarySpelling(allText, entry))
+                    entry.seen = true;
             }
 
             foreach (var topic in current.Topics)
@@ -816,7 +811,7 @@ public class DialogueManager : MonoBehaviour
         optionThree.text = TranslateText(rawOpt3);
         optionFour.text  = TranslateText(rawOpt4);
         ScrollToTop();
-        RefreshOptionsLayout();
+        StartCoroutine(RefreshOptionsLayoutNextFrame());
     }
 
     private void ScrollToTop()
@@ -842,6 +837,27 @@ public class DialogueManager : MonoBehaviour
     // DICTIONARY
     // =====================================================================
 
+    private List<InterviewBase.DictEntry> GetDictionaryEntries()
+    {
+        var entries = GameStateManager.Instance != null
+            ? GameStateManager.Instance.GetGlobalDictionaryEntries()
+            : new List<InterviewBase.DictEntry>();
+
+        if (current != null && current.DictionaryEntries != null)
+            foreach (var entry in current.DictionaryEntries)
+                if (entry != null && !entries.Contains(entry)) entries.Add(entry);
+
+        return entries;
+    }
+
+    private List<InterviewBase.DictEntry> GetDiscoveredDictionaryEntries()
+    {
+        var entries = new List<InterviewBase.DictEntry>();
+        foreach (var entry in GetDictionaryEntries())
+            if (entry.seen || entry.translated) entries.Add(entry);
+        return entries;
+    }
+
     public void ToggleDictionary()
     {
         if (dictionaryPanel != null)
@@ -855,12 +871,13 @@ public class DialogueManager : MonoBehaviour
 
     private void InitDictionarySlots()
     {
-        if (current == null || dictionarySlots == null) return;
+        if (dictionarySlots == null) return;
+        var entries = GetDiscoveredDictionaryEntries();
         for (int i = 0; i < dictionarySlots.Length; i++)
         {
             // Hide the parent button (DictBtn), not just the text child
             var btn = dictionarySlots[i].transform.parent.gameObject;
-            if (i < current.DictionaryEntries.Length)
+            if (i < entries.Count)
                 btn.SetActive(true);
             else
                 btn.SetActive(false);
@@ -869,13 +886,14 @@ public class DialogueManager : MonoBehaviour
 
     private void RefreshDictionaryVisibility()
     {
-        if (current == null || dictionarySlots == null) return;
+        if (dictionarySlots == null) return;
+        var entries = GetDiscoveredDictionaryEntries();
         for (int i = 0; i < dictionarySlots.Length; i++)
         {
             var btn = dictionarySlots[i].transform.parent.gameObject;
-            if (i < current.DictionaryEntries.Length)
+            if (i < entries.Count)
             {
-                var e = current.DictionaryEntries[i];
+                var e = entries[i];
                 bool show = e.seen || e.translated;
                 btn.SetActive(show);
                 if (show)
@@ -890,11 +908,11 @@ public class DialogueManager : MonoBehaviour
 
     public void DictionaryLookup(int oneBasedIndex)
     {
-        if (current == null) return;
+        var entries = GetDiscoveredDictionaryEntries();
         int i = oneBasedIndex - 1;
-        if (i < 0 || i >= current.DictionaryEntries.Length) return;
+        if (i < 0 || i >= entries.Count) return;
 
-        var entry = current.DictionaryEntries[i];
+        var entry = entries[i];
 
         // If already translated, just show the entry — don't spend a lookup
         if (entry.translated)
@@ -1414,6 +1432,8 @@ Debug.Log("[DM] ShowDictEntry called: " + entry.klingonWord);
     {
         if (optionOne == null) return;
 
+        if (_baseOptionFontSize < 0f) _baseOptionFontSize = optionOne.fontSize;
+
         Transform group = optionOne.transform.parent;
         if (group == null) return;
         optionsGroup = group.gameObject;
@@ -1484,6 +1504,12 @@ Debug.Log("[DM] ShowDictEntry called: " + entry.klingonWord);
     /// stayed put and the options rendered right on top of it. Recomputing it
     /// here, every time text changes, keeps it correct in every phase.
     /// </summary>
+    private System.Collections.IEnumerator RefreshOptionsLayoutNextFrame()
+    {
+        yield return null;
+        RefreshOptionsLayout();
+    }
+
     private void RefreshOptionsLayout()
     {
         if (optionsGroup == null || interviewPanel == null) return;
@@ -1491,12 +1517,49 @@ Debug.Log("[DM] ShowDictEntry called: " + entry.klingonWord);
         var groupRt = optionsGroup.GetComponent<RectTransform>();
         if (groupRt == null) return;
 
+        // Always start from the full baseline font size before measuring —
+        // otherwise a shrink applied on a previous (longer) dialogue node
+        // would silently carry over and compound on later, shorter ones.
+        var allOptions = new[] { optionOne, optionTwo, optionThree, optionFour };
+        if (_baseOptionFontSize > 0f)
+            foreach (var opt in allOptions)
+                if (opt != null) opt.fontSize = _baseOptionFontSize;
+
         Canvas.ForceUpdateCanvases();
         UnityEngine.UI.LayoutRebuilder.ForceRebuildLayoutImmediate(groupRt);
 
         float groupHeight = groupRt.rect.height;
 
-        var dialogueAreaGO = interviewPanel.transform.Find("DialogueArea")?.gameObject;
+        // Hard cap: the options block must never claim more than half the
+        // panel's height. Without this, a node with several options (even
+        // short ones — the exact bug reported on Andrew's yes/no/price node
+        // in a smaller Editor Game window) can grow tall enough to push its
+        // last button below the visible, clickable screen area entirely.
+        // If it's still too tall after shrinking fonts to a sane floor, the
+        // buttons just sit snugly rather than overflowing — nothing is ever
+        // pushed off-screen or made unclickable again.
+        var panelRt = interviewPanel.GetComponent<RectTransform>();
+        float maxAllowed = panelRt != null ? panelRt.rect.height * 0.5f : groupHeight;
+
+        if (groupHeight > maxAllowed && groupHeight > 0f && _baseOptionFontSize > 0f)
+        {
+            float shrink = Mathf.Clamp(maxAllowed / groupHeight, 0.55f, 1f);
+            foreach (var opt in allOptions)
+                if (opt != null) opt.fontSize = _baseOptionFontSize * shrink;
+
+            Canvas.ForceUpdateCanvases();
+            UnityEngine.UI.LayoutRebuilder.ForceRebuildLayoutImmediate(groupRt);
+            groupHeight = Mathf.Min(groupRt.rect.height, maxAllowed);
+        }
+
+        GameObject dialogueAreaGO = null;
+        if (mainText != null)
+            dialogueAreaGO = GetDirectChild(interviewPanel, mainText.transform);
+        if (dialogueAreaGO == null)
+            dialogueAreaGO = interviewPanel.transform.Find("DialogueArea")?.gameObject;
+        if (dialogueAreaGO == null && optionsGroup != null)
+            dialogueAreaGO = GetDirectChild(interviewPanel, optionsGroup.transform);
+
         if (dialogueAreaGO != null)
         {
             var daRt = dialogueAreaGO.GetComponent<RectTransform>();
