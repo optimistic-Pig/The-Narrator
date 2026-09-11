@@ -81,6 +81,27 @@ public class PlayerMovement : MonoBehaviour
 
         if (playerThoughts != null) playerThoughts.SetOfficeMode(true);
     }
+    /// <summary>
+    /// Lock player movement and UI for document/menu interactions.
+    /// </summary>
+    public void LockPlayer()
+    {
+        canMove = false;
+        Cursor.lockState = CursorLockMode.None;
+        Cursor.visible   = true;
+        crosshair.gameObject.SetActive(false);
+    }
+
+    /// <summary>
+    /// Unlock player movement and return to normal office mode.
+    /// </summary>
+    public void UnlockPlayer()
+    {
+        canMove = true;
+        Cursor.lockState = CursorLockMode.Locked;
+        Cursor.visible   = false;
+        crosshair.gameObject.SetActive(true);
+    }
 
     // =====================================================================
     // UNITY LIFECYCLE
@@ -295,6 +316,13 @@ public class PlayerMovement : MonoBehaviour
                         onOfficeCam = false;
                         if (playerThoughts != null) playerThoughts.SetOfficeMode(false);
                     }
+                }
+
+                // ── Filing Cabinet ────────────────────────────────────────
+                else if (tag == "FilingCabinet")
+                {
+                    var cabinet = hit.collider.GetComponent<FilingCabinet>();
+                    if (cabinet != null) cabinet.OnClicked();
                 }
 
                 // ── Writing Desk ──────────────────────────────────────────

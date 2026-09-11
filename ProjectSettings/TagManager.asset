@@ -22,6 +22,7 @@ TagManager:
   - Desk
   - SecretConsole
   - TrueInterview
+  - FilingCabinet
   layers:
   - Default
   - TransparentFX

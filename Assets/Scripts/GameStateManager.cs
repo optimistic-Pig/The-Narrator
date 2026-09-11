@@ -69,6 +69,7 @@ public class GameStateManager : MonoBehaviour
     // ─── Internal tracking ───────────────────────────────────────────────
     private readonly HashSet<CharacterID> interviewed  = new HashSet<CharacterID>();
     private InterviewBase                 activeNPC    = null;
+    private readonly HashSet<string>      unlockedDocs = new HashSet<string>();
 
     public List<InterviewBase.DictEntry> GetGlobalDictionaryEntries()
     {
@@ -206,6 +207,19 @@ public class GameStateManager : MonoBehaviour
 
     /// <summary>Call from GorpInterview when the secret-bunker node fires.</summary>
     public void SetBunkerDialogueFound() { HasBunkerDialogue = true; }
+
+    /// <summary>Call from dialogue nodes to unlock a document.</summary>
+    public void UnlockDocument(string documentID)
+    {
+        if (!string.IsNullOrEmpty(documentID))
+            unlockedDocs.Add(documentID);
+    }
+
+    /// <summary>Check if a document has been unlocked.</summary>
+    public bool IsDocumentUnlocked(string documentID)
+    {
+        return !string.IsNullOrEmpty(documentID) && unlockedDocs.Contains(documentID);
+    }
 
     // =====================================================================
     // ENDING LOGIC

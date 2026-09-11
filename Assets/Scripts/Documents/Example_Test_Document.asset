@@ -1,0 +1,25 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a7c4d6e5f8b2c9a1e3d5f7a2c4e6b8d0, type: 3}
+  m_Name: Example_Test_Document
+  m_EditorClassIdentifier: 
+  documentID: test_example
+  title: Test Document
+  body: "This is a test document.\n\nThis document contains placeholder text to demonstrate
+    the document system. In a real game, you would replace this with actual document
+    content such as research notes, old papers, transcripts, or other in-game materials
+    that the player discovers during interviews.\n\nKey features:\n\u2022 Documents
+    persist across day changes\n\u2022 Only unlocked documents are visible\n\u2022
+    Multiple documents can be created and stored\n\u2022 Documents are unlocked via
+    dialogue nodes\n\nYou can unlock documents by calling:\nGameStateManager.Instance.UnlockDocument(\"test_example\");\n\nThis
+    document will appear in the filing cabinet and can be read by the player."
+  unlockedBy: GameStart
