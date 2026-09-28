@@ -1,0 +1,18 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 9ea73d625030fed49a031893fda15f41, type: 3}
+  m_Name: PhlegethonArticle
+  m_EditorClassIdentifier:
+  documentID: phlegethon_article
+  title: The Quest for the Phlegethon
+  body: "<align=center><size=150%><b>THE QUEST FOR THE PHLEGETHON</b></size>\n\n<size=115%><i>The untimely death of Dr. Rosetta</i></size></align>\n\nToday we mourn the loss of a brilliant mind and a revolutionary in Martian-Human relations. Dr. Rosetta interviewed locals, unraveling the myth of a gemstone with the ability to turn common metals such as copper into \"black tar,\" which we know as oil. They warned that the way was treacherous and the cave was a labyrinth.\n\nHowever, we all know how Martians are. They are tricksters and will double-cross anyone for an ounce of gold. I warned her about working with their ilk, but she insisted on their compassion and how they had been \"nothing but helpful and kind.\" Obviously, it was a front so they could backstab her, bury her in those God-forsaken caves, and pass it off as \"an honest mistake anybody would have made.\"\n\n<b>This injustice will not stand.</b> Somebody has to do something about those creatures. They are blatantly killing our own.\n\nYou reading from Earth, are you going to let this stand? Are you going to let these things kill more of our own? Or are you going to petition your governments to do something to stop these terrorists from ruining our second chance at life?\n\n<align=right><i>Article written and edited by Mr. Rosetta</i></align>"
+  unlockedBy: GorpPhlegethon

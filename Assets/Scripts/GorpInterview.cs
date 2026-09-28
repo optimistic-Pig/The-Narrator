@@ -877,6 +877,7 @@ public class GorpInterview : InterviewBase
             if (option == 1.0f)
             {
                 dialogueIndexTracker = 179;
+                GameStateManager.Instance?.UnlockDocument("phlegethon_article");
                 dm.SetDialogueTexts(
                     "He says the Phlegethon Stone is simply that \u2014 a mystical gemstone thought to turn lead and copper into oil. There are claims of one existing during the founding of the Tagh\u2019el (?), making it the main reason the area was so powerful. To his knowledge, nobody currently has one.",
                     "Ask if this could still be found",
